@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Methods">
+      <UniqueIdentifier>{1eae62ff-f93f-4ea0-bc51-370515c351c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OdeFun">
+      <UniqueIdentifier>{4e88d6ce-1b83-4b46-9669-5073e1fef88f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Richardson">
+      <UniqueIdentifier>{fdfd8e9a-6c50-4bae-bcd9-b1c22f02e1f3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Euler.cpp">
+      <Filter>Methods</Filter>
+    </ClCompile>
+    <ClCompile Include="MethodWrapper.cpp">
+      <Filter>Methods</Filter>
+    </ClCompile>
+    <ClCompile Include="Richardson.cpp">
+      <Filter>Richardson</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SolverIF.h">
+      <Filter>Methods</Filter>
+    </ClInclude>
+    <ClInclude Include="Euler.h">
+      <Filter>Methods</Filter>
+    </ClInclude>
+    <ClInclude Include="OdeFunIF.h">
+      <Filter>OdeFun</Filter>
+    </ClInclude>
+    <ClInclude Include="MethodWrapperIF.h">
+      <Filter>Methods</Filter>
+    </ClInclude>
+    <ClInclude Include="MethodWrapper.h">
+      <Filter>Methods</Filter>
+    </ClInclude>
+    <ClInclude Include="Richardson.h">
+      <Filter>Richardson</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
