@@ -2,16 +2,21 @@
 
 #include "SolverIF.h"
 
+#include <exception>
+#include <iostream>
 #include <valarray>
 
 //Some renaming for convience
 using std::valarray;
 using vec = valarray<double>;
-using mat = valarray<vec>;
+using vecValArray = valarray<vec>;
+using mat = valarray<vecValArray>;
 using rvec = vec&;
 using crvec = const rvec;
 using rmat = mat&;
 using crmat = const rmat;
+using std::exception;
+using std::cerr;
 
 class Richardson
 {
@@ -50,6 +55,6 @@ public:
 	void initalizeSteps(const double&, const double&);
 
 	//Append the result
-	rvec operator()(const size_t, const size_t);
+	void operator()(const size_t, const size_t, crvec);
 };
 
