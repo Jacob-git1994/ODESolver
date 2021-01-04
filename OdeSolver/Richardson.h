@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SolverIF.h"
-
 #include <exception>
 #include <iostream>
 #include <valarray>
