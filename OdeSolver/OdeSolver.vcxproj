@@ -151,6 +151,7 @@
     <ClInclude Include="MethodWrapperBase.h" />
     <ClInclude Include="MethodWrapperIF.h" />
     <ClInclude Include="OdeFunIF.h" />
+    <ClInclude Include="OdeSolverParams.h" />
     <ClInclude Include="Richardson.h" />
     <ClInclude Include="SolverIF.h" />
   </ItemGroup>
