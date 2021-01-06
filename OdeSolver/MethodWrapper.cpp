@@ -16,11 +16,3 @@ void MethodWrapper::buildSolvers()
 	}
 	//If this fails move onto the next method
 }
-
-void MethodWrapper::initalize()
-{
-	//Build the methods
-	buildSolvers();
-
-	//TODO: ADD CHECKS JUST IN CASE NO METHODS HAVE BEEN CREATED
-}

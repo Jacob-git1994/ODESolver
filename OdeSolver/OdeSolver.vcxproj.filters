@@ -32,6 +32,9 @@
     <ClCompile Include="Richardson.cpp">
       <Filter>Richardson</Filter>
     </ClCompile>
+    <ClCompile Include="MethodWrapperBase.cpp">
+      <Filter>Methods</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SolverIF.h">
@@ -51,6 +54,9 @@
     </ClInclude>
     <ClInclude Include="Richardson.h">
       <Filter>Richardson</Filter>
+    </ClInclude>
+    <ClInclude Include="MethodWrapperBase.h">
+      <Filter>Methods</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

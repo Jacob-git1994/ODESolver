@@ -6,6 +6,7 @@
 #include <valarray>
 
 #include "Euler.h"
+#include "MethodWrapperBase.h"
 #include "MethodWrapperIF.h"
 #include "SolverIF.h"
 
@@ -18,7 +19,7 @@ using std::cerr;
 using methodPtr = unique_ptr<SolverIF>;
 using methodMap = map<unsigned int, methodPtr>;
 
-class MethodWrapper : public MethodWrapperIF
+class MethodWrapper : public MethodWrapperBase
 {
 private:
 
@@ -36,10 +37,7 @@ public:
 	//Default deconstructor
 	~MethodWrapper() = default;
 
-	//Initalize the solvers
-	virtual void initalize() override;
-
 	//Just for a test
-	inline SolverIF* getSolver() { return find(SolverIF::SOLVER_TYPES::EULER).get(); };
+	inline SolverIF* getSolver() { return findMethod(SolverIF::SOLVER_TYPES::EULER).get(); };
 };
 

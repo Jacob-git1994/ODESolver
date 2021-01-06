@@ -47,13 +47,13 @@ int main()
 
 	Richardson testCleaning;
 	testCleaning.initalizeSteps(2., .01);
-	testCleaning.BuildTables(10,ic.size());
+	testCleaning.BuildTables(12,ic.size());
 	
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 12; ++i)
 	{
 		methods.updateForVectorSize(ic);
-		methods.getSolver()->update(sol, .01/pow(2.,i), initalTime, 1., testProblem);
+		methods.getSolver()->update(sol, .0001/pow(2.,i), initalTime, 1., testProblem);
 		//std::cout << sol[0] << "\n";
 		testCleaning(i, 0, sol);
 	}

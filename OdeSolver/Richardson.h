@@ -1,11 +1,11 @@
 #pragma once
 
-#include "SolverIF.h"
-
 #include <cmath>
 #include <exception>
 #include <iostream>
 #include <valarray>
+
+#include "SolverIF.h"
 
 //Some renaming for convience
 //using std::valarray;
