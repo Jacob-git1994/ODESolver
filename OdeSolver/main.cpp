@@ -43,23 +43,19 @@ int main()
 
 	MethodWrapper methods;
 	methods.initalize();
-	methods.updateForVectorSize(ic);
-
-	Richardson testCleaning;
-	testCleaning.initalizeSteps(2., .01);
-	testCleaning.BuildTables(12,ic.size());
-	
+	methods.updateAll(ic,12,2.,.01);
 
 	for (int i = 0; i < 12; ++i)
 	{
 		methods.updateForVectorSize(ic);
-		methods.getSolver()->update(sol, .0001/pow(2.,i), initalTime, 1., testProblem);
-		//std::cout << sol[0] << "\n";
-		testCleaning(i, 0, sol);
+		
+		methods.getSolver()->update(sol, .001/pow(2.,i), initalTime, 1., testProblem);
+
+		methods.findTable(SolverIF::SOLVER_TYPES::EULER)(i, 0, sol);
 	}
 
 	std::valarray<double> good;
-	cout << testCleaning.error(good) << "\n";
+	cout << methods.findTable(SolverIF::SOLVER_TYPES::EULER).error(good) << "\n";
 	cout << good[0] << "\n";
 
 	delete testProblem;

@@ -44,4 +44,11 @@ public:
 
 	//Update all the methods vectors for new vector size
 	void updateForVectorSize(const vec&);
+
+	//Update all tables for the Richardson Table Sizes
+	void updateForRichardsonTables(const size_t, const double, const double);
+
+	//Update all the methods vectors for new vector size
+	void updateAll(const vec&, const size_t, const double, const double);
+
 };

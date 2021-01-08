@@ -105,3 +105,32 @@ void MethodWrapperBase::initalize()
 	//Build the tables
 	buildTables();
 }
+
+void MethodWrapperBase::updateForRichardsonTables(const size_t tableSize, const double reductionFactor, const double baseStepSize)
+{
+	//Go through list of tables and build up the tables
+	for (tableMap::iterator richItr = tables.begin(); richItr != tables.end(); ++richItr)
+	{
+		//Current table
+		Richardson& currentTable = richItr->second;
+
+		//Current vector size
+		size_t currentVectorSize = findMethod(static_cast<SolverIF::SOLVER_TYPES>(richItr->first)).get()->
+			getCurrentState().size();
+
+		//Initalize the current tables parameters
+		currentTable.initalizeSteps(reductionFactor, baseStepSize);
+
+		//Initalize the current tables element size
+		currentTable.BuildTables(tableSize, currentVectorSize);
+	}
+}
+
+void MethodWrapperBase::updateAll(const vec& state, const size_t tableSize, const double reductionFactor, const double baseStepSize)
+{
+	//Update the vector sizes
+	updateForVectorSize(state);
+
+	//Update each richardson table
+	updateForRichardsonTables(tableSize, reductionFactor, baseStepSize);
+}
