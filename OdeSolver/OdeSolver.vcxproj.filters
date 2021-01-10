@@ -38,6 +38,9 @@
     <ClCompile Include="MethodWrapperBase.cpp">
       <Filter>Methods</Filter>
     </ClCompile>
+    <ClCompile Include="OdeSolver.cpp">
+      <Filter>OdeSolver</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SolverIF.h">
@@ -62,6 +65,12 @@
       <Filter>Methods</Filter>
     </ClInclude>
     <ClInclude Include="OdeSolverParams.h">
+      <Filter>OdeSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="OdeSolver.h">
+      <Filter>OdeSolver</Filter>
+    </ClInclude>
+    <ClInclude Include="StateVector.h">
       <Filter>OdeSolver</Filter>
     </ClInclude>
   </ItemGroup>

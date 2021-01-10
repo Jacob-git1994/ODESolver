@@ -64,7 +64,16 @@ public:
 	//Append the result
 	void operator()(const size_t, const size_t, crvec);
 
-	//Get the error
+	//Get the error and the updated vector
 	double error(rvec);
+
+	//Get the error ignoring the updated vector
+	double error();
+
+	//Get the table size
+	const size_t getTableSize() const;
+
+	//Get the reduction factor
+	const double getReductionFactor() const;
 };
 

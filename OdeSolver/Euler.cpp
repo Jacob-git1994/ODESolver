@@ -24,12 +24,16 @@ void Euler::initalize(crvec initalCondition)
 }
 
 //Update to the next time step
-rvec Euler::update(rvec newState,
+rvec Euler::update(crvec			previousState,
+				   rvec				newState,
 				   const double&	dt,
 				   const double&	tBegin,
 				   const double&	tEnd,
 	               const OdeFunIF*	functionVector)
 {
+	//Update the currentState
+	currentState = previousState;
+
 	//Save the current time
 	double currentTime = tBegin;
 

@@ -143,6 +143,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MethodWrapper.cpp" />
     <ClCompile Include="MethodWrapperBase.cpp" />
+    <ClCompile Include="OdeSolver.cpp" />
     <ClCompile Include="Richardson.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -151,9 +152,11 @@
     <ClInclude Include="MethodWrapperBase.h" />
     <ClInclude Include="MethodWrapperIF.h" />
     <ClInclude Include="OdeFunIF.h" />
+    <ClInclude Include="OdeSolver.h" />
     <ClInclude Include="OdeSolverParams.h" />
     <ClInclude Include="Richardson.h" />
     <ClInclude Include="SolverIF.h" />
+    <ClInclude Include="StateVector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

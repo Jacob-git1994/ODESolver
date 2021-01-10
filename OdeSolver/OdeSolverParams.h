@@ -1,19 +1,20 @@
 #pragma once
 
 #include <array>
+#include <stdexcept>
 
 #include "SolverIF.h"
 
 using std::array;
+using std::invalid_argument;
 
 class OdeSolverParams
 {
-private:
-
-	//Check user inputs
-	bool checkUSerInputs() const;
 
 public:
+
+	//Check user inputs
+	inline bool checkUserInputs() const;
 
 	//Allowed Methods
 	bool useEuler;
@@ -27,10 +28,21 @@ public:
 	double upperError;
 	double currentError;
 
+	//Allowed deleta time
+	double dt;
+
+	//Time constraints
+	double minRunTime;
+	double maxRunTime;
+	double currentRunTime;
+
 	//Richardson table generation
 	size_t minTableSize;
 	size_t maxTableSize;
 	size_t currentTableSize;
+
+	//Richardson reduction factors
+	double redutionFactor;
 
 	//Problem Specifics
 	bool isStiff; //Stiff PDEs
@@ -38,19 +50,21 @@ public:
 	bool isFast; //The problem evolves quickly
 
 	//Construtors
-	OdeSolverParams(const array<bool,5>, const array<double,2>, const array<size_t,2>, const array<size_t,3>);
+	inline OdeSolverParams(const array<bool, 5>&, const array<double, 2>&, const array<double, 2>&, const array<size_t, 2>&, const array<size_t, 3>&, const double&);
 
 	//Copy Constructor
-	OdeSolverParams(const OdeSolverParams&);
+	inline OdeSolverParams(const OdeSolverParams&) = default;
 
 	//Assign Operator
-	const OdeSolverParams& operator=(const OdeSolverParams&);
+	inline const OdeSolverParams& operator=(const OdeSolverParams&);
 };
 
-OdeSolverParams::OdeSolverParams(const array<bool, 5> allowedMethods = {true,false,false,false,false},
-	const array<double, 2> errorBounds = {.001,.01},
-	const array<size_t, 2> richLevelBounds = {4,8},
-	const array<size_t, 3> problemSpecifics = {false,false,false}) :
+OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = {true,false,false,false,false},
+	const array<double, 2>& errorBounds = {.0001,.001},
+	const array<double, 2>& runTimeBound = {10,60},
+	const array<size_t, 2>& richLevelBounds = {4,8},
+	const array<size_t, 3>& problemSpecifics = {false,false,false},
+	const double& reductionFactorIn = 2.) :
 	useEuler(allowedMethods[0]),
 	useRK2(allowedMethods[1]),
 	useRK4(allowedMethods[2]),
@@ -58,14 +72,82 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5> allowedMethods = {true,fal
 	useCrank(allowedMethods[4]),
 	lowerError(errorBounds[0]),
 	upperError(errorBounds[1]),
+	minRunTime(runTimeBound[0]),
+	maxRunTime(runTimeBound[1]),
 	minTableSize(richLevelBounds[0]),
 	maxTableSize(richLevelBounds[1]),
 	isStiff(problemSpecifics[0]),
 	isLarge(problemSpecifics[1]),
 	isFast(problemSpecifics[2]),
 	currentError(0.0),
-	currentTableSize(1)
+	currentTableSize(1),
+	currentRunTime(0.0),
+	dt(.01),
+	redutionFactor(reductionFactorIn)
 {
-	//Do nothing here
+
+	//If the inputs are invalid we do no want to continue
+	if (!checkUserInputs())
+	{
+		throw invalid_argument("Invalid ODE parameters");
+	}
 }
 
+bool OdeSolverParams::checkUserInputs() const
+{
+	//Initalize our arguments
+	bool goodArgs = true;
+
+	//Make sure the error inputs are valid
+	if (!((lowerError > 0. && isfinite(lowerError) && lowerError < upperError) && (upperError > 0 && isfinite(upperError) && upperError > lowerError)))
+	{
+		goodArgs = false;
+	}
+
+	//Make sure the table arguments are valid
+	if (!(minTableSize > 1 and maxTableSize > 2 && minTableSize < maxTableSize))
+	{
+		goodArgs = false;
+	}
+
+	//Make sure the run times are valid
+	if (!((minRunTime > 0. && isfinite(minRunTime) && minRunTime < maxRunTime) && (maxRunTime > 0 && isfinite(maxRunTime) && maxRunTime > minRunTime)))
+	{
+		goodArgs = false;
+	}
+
+	if (!(redutionFactor > 1))
+	{
+		goodArgs = false;
+	}
+
+	//Return if the arguments are valid
+	return goodArgs;
+}
+
+const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
+{
+	//Copy all the parameters over
+	useEuler = params.useEuler;
+	useRK2 = params.useRK2;
+	useRK4 = params.useRK4;
+	useImplictEuler = params.useImplictEuler;
+	useCrank = params.useCrank;
+	lowerError = params.lowerError;
+	upperError = params.upperError;
+	currentError = params.currentError;
+	minRunTime = params.minRunTime;
+	maxRunTime = params.maxRunTime;
+	currentRunTime = params.currentRunTime;
+	minTableSize = params.minTableSize;
+	maxTableSize = params.maxTableSize;
+	currentTableSize = params.currentTableSize;
+	isStiff = params.isStiff; 
+	isLarge = params.isLarge;
+	isFast = params.isFast; 
+	dt = params.dt;
+	redutionFactor = params.redutionFactor;
+
+	//Return this
+	return *this;
+}

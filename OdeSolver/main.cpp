@@ -3,6 +3,8 @@
 #include "SolverIF.h"
 #include "MethodWrapper.h"
 #include "Richardson.h"
+#include "OdeSolverParams.h"
+#include "OdeSolver.h"
 
 #include <valarray>
 #include <iostream>
@@ -41,22 +43,22 @@ int main()
 	std::valarray<double> sol(1);
 	double initalTime = 0.;
 
-	MethodWrapper methods;
-	methods.initalize();
-	methods.updateAll(ic,12,2.,.01);
+	/*
+	OdeSolverParams params({ true,false,false,false,false },
+		{ .001,.01 },
+		{ 10,60 },
+		{ 2,8 },
+		{ false,false,false });
 
-	for (int i = 0; i < 12; ++i)
-	{
-		methods.updateForVectorSize(ic);
-		
-		methods.getSolver()->update(sol, .001/pow(2.,i), initalTime, 1., testProblem);
+	*/
+	OdeSolverParams params;
 
-		methods.findTable(SolverIF::SOLVER_TYPES::EULER)(i, 0, sol);
-	}
+	params.upperError = .00009;
+	params.lowerError = .000001;
+	params.redutionFactor = 10.;
 
-	std::valarray<double> good;
-	cout << methods.findTable(SolverIF::SOLVER_TYPES::EULER).error(good) << "\n";
-	cout << good[0] << "\n";
+	OdeSolver solver(params);
+	solver.run(testProblem,ic,0,1);
 
 	delete testProblem;
 }

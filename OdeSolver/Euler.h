@@ -37,7 +37,8 @@ public:
 	virtual void initalize(crvec) override;
 
 	//Get the next time step for rvec
-	virtual rvec update(rvec,
+	virtual rvec update(crvec,
+						rvec,
 						const double&,
 						const double&,
 						const double&,

@@ -95,3 +95,41 @@ double Richardson::error(rvec bestResult)
 	//return error
 	return currentNormError;
 }
+
+double Richardson::error()
+{
+	//Get ref to the current object
+	Richardson& currentTable = *this;
+
+	//Iterate through the rows of the table
+	for (size_t i = 0; i < result.size() - 1; ++i)
+	{
+		//Iterate through the columns
+		for (size_t j = 0; j <= i; ++j)
+		{
+			//Get the updated result
+			vec updatedResult = (pow(reductionFactor, static_cast<double>(j) + 1.)
+				* result[i + 1][j] - result[i][j])
+				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
+
+			//Save the updated result to the table
+			currentTable(i + 1, j + 1, std::move(updatedResult));
+		}
+	}
+
+	//Get the error of the best result
+	currentNormError = normedError();
+
+	//return error
+	return currentNormError;
+}
+
+const size_t Richardson::getTableSize() const
+{
+	return result.size();
+}
+
+const double Richardson::getReductionFactor() const
+{
+	return reductionFactor;
+}

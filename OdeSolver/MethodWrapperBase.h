@@ -22,33 +22,33 @@ private:
 public:
 
 	//Initalize our method
-	void initalize();
+	virtual void initalize() override;
 
 	//Get a referance to the method map
-	methodMap& getMethodMap();
+	virtual methodMap& getMethodMap() override;
 
 	//Get a referance to the table map
-	tableMap& getTableMap();
+	virtual tableMap& getTableMap() override;
 
 	//Get a const referance to the method map
-	const methodMap& getMethodMap() const;
+	virtual const methodMap& getMethodMap() const override;
 
 	//Get a const referance to the table map
-	const tableMap& getTableMap() const;
+	virtual const tableMap& getTableMap() const override;
 
 	//Get the solver we want to use
-	methodPtr& findMethod(SolverIF::SOLVER_TYPES);
+	virtual methodPtr& findMethod(SolverIF::SOLVER_TYPES) override;
 
 	//Get pointer to tables
-	Richardson& findTable(SolverIF::SOLVER_TYPES);
+	virtual Richardson& findTable(SolverIF::SOLVER_TYPES) override;
 
 	//Update all the methods vectors for new vector size
-	void updateForVectorSize(const vec&);
+	virtual void updateForVectorSize(const vec&) override;
 
 	//Update all tables for the Richardson Table Sizes
-	void updateForRichardsonTables(const size_t, const double, const double);
+	virtual void updateForRichardsonTables(const size_t, const double, const double) override;
 
 	//Update all the methods vectors for new vector size
-	void updateAll(const vec&, const size_t, const double, const double);
+	virtual void updateAll(const vec&, const size_t, const double, const double) override;
 
 };
