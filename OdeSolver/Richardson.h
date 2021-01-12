@@ -3,6 +3,7 @@
 #include <cmath>
 #include <exception>
 #include <iostream>
+#include <stdexcept>
 #include <valarray>
 
 #include "SolverIF.h"
@@ -22,6 +23,7 @@ using std::sqrt;
 using std::pow;
 using std::fabs;
 using std::log;
+using std::invalid_argument;
 
 class Richardson
 {
@@ -45,9 +47,12 @@ private:
 	//Calculate the vector norm
 	double normedError() const;
 
+	//Flag to check if tables are built
+	bool isBuilt;
+
 public:
 
-	//Using default constrcutor
+	//Using default constrcutor (need to add something here to initalize parameters)
 	Richardson() = default;
 
 	//Copy Constructor default

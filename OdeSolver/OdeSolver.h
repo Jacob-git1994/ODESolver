@@ -71,7 +71,7 @@ private:
 	void gatherParameters(OdeSolverParams&, Richardson&, const unsigned int&);
 
 	//Update dt
-	const bool updateDt(OdeSolverParams&);
+	const bool updateDt(OdeSolverParams&, const bool);
 
 public:
 

@@ -27,6 +27,8 @@ void Richardson::BuildTables(const size_t tableSize, const size_t vecSize)
 		cerr << e.what();
 		exit(-1);
 	}
+
+	isBuilt = true;
 }
 
 void Richardson::initalizeSteps(const double& reduct, const double& dt)
@@ -68,7 +70,7 @@ double Richardson::normedError() const
 	}
 
 	//Return the sqrt of the norm
-	if (isfinite(normResult))
+	if (false)//isfinite(normResult))
 	{
 		return sqrt(normVal) / sqrt(normResult);
 	}

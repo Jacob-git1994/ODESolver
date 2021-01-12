@@ -55,15 +55,18 @@ int main()
 
 	params.upperError = .000009;
 	params.lowerError = .0000001;
-	params.redutionFactor = 2.;
+	params.redutionFactor = 10.;
 	params.dt = .01;
-	params.minDt = .01;
-	params.maxDt = .1;
+	params.minDt = .000001;
+	params.maxDt = .01;
 	params.minTableSize = 3;
-	params.maxTableSize = 10;
+	params.maxTableSize = 5;
 
 	OdeSolver solver(params);
-	solver.run(testProblem,ic,0,1);
+	for (int i = 0; i < 4; ++i)
+	{
+		solver.run(testProblem, ic, 0, 1);
+	}
 
 	delete testProblem;
 }

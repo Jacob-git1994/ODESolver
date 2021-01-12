@@ -168,8 +168,14 @@ void OdeSolver::buildSolution(crvec initalCondition, OdeFunIF* problem, const do
 		//Clear out our threads from the previous run (will be added later)
 		richardsonThreads.clear();
 
-		//Set dt to max dt allowed
-		currentMethodParams.dt = currentMethodParams.maxDt;
+		//Set our inital convergence criterial the the theoretical local truncation error for the first pass of the table generation
+		currentMethodParams.c = methodItr->second->getErrorOrder() + currentMethodParams.minTableSize;
+
+		//Set the currentError to a default value
+		currentMethodParams.currentError = 99999.;
+
+		//Update dt with our convergence criteria
+		updateDt(currentMethodParams, true);
 
 		//Get the current time
 		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -177,12 +183,12 @@ void OdeSolver::buildSolution(crvec initalCondition, OdeFunIF* problem, const do
 		//initalize our current starting table size to the min table size
 		currentMethodParams.currentTableSize = generalParams.minTableSize;
 
-		//Update our table
-		currentTable.initalizeSteps(currentMethodParams.redutionFactor, currentMethodParams.dt);
-
 		//Run each result several times
 		do
 		{
+			//Update our table
+			currentTable.initalizeSteps(currentMethodParams.redutionFactor, currentMethodParams.dt);
+
 			//Update the Richardson Table Size
 			currentTable.BuildTables(currentMethodParams.currentTableSize, initalCondition.size());
 
@@ -203,7 +209,7 @@ void OdeSolver::buildSolution(crvec initalCondition, OdeFunIF* problem, const do
 			//std::cout << currentMethodParams.c << "\n";
 
 			//Build more tables if the error is greater then the greatest error
-		} while (updateDt(currentMethodParams));
+		} while (updateDt(currentMethodParams, false) && currentMethodParams.currentTableSize++ < currentMethodParams.maxTableSize);
 
 		//Correct the current table size of its last increment
 		currentMethodParams.currentTableSize--;
@@ -216,13 +222,13 @@ void OdeSolver::buildSolution(crvec initalCondition, OdeFunIF* problem, const do
 	}
 }
 
-const bool OdeSolver::updateDt(OdeSolverParams& currentParams)
+const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstPassThrough)
 {
 	//Get our current error
 	const double& currentError = currentParams.currentError;
 
-	//Check to see if our error has been satisfied.
-	if (currentError >= currentParams.lowerError && currentError <= currentParams.upperError)
+	//Check to see if we are less than the greatest allowed error to show convergence
+	if (currentError <= currentParams.upperError)
 	{
 		//We coverged to error we wanted
 		currentParams.satifiesError = true;
@@ -252,6 +258,68 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams)
 		//Get a dt for the middile
 		dt = (rightDt + leftDt) / 2.;
 
+		//Reset dt if it gets too small (the program would never finish)
+		if (!isfinite(dt) && !firstPassThrough)
+		{
+			//Reset dt to the smallest parameters
+			dt = currentParams.minDt;
+		}
+		//Dt is outside are min dt window we want to clamp it then incrementally update it
+		if (dt < currentParams.minDt && !firstPassThrough)
+		{
+			//Set the clamping flag
+			currentParams.isDtClamped = true;
+
+			//Clamp dt
+			dt = currentParams.minDt;
+
+			//Try to smooth out dt to match the error better
+			//Initalize our error tolerance
+			const double dtTol = 1e-3;
+
+			//Initalize our max iterations
+			const unsigned int MAX_Iter = 5;
+
+			//Current iteration count
+			unsigned int currentCount = 0;
+
+			//Find a new dt that satisfies this equation
+			do
+			{
+				dt -= (currentError - pow(dt, c)) / (-c * pow(dt, c - 1.));
+
+			} while (fabs(currentError - pow(dt, c)) > dtTol && currentCount++ < MAX_Iter);
+		}
+		else if (dt > currentParams.maxDt && !firstPassThrough)
+		{
+			//Set the clamping flag
+			currentParams.isDtClamped = true;
+
+			//Clamp dt
+			dt = currentParams.maxDt;
+
+			//Try to smooth out dt to match the error better
+			//Initalize our error tolerance
+			const double dtTol = 1e-3;
+
+			//Initalize our max iterations
+			const unsigned int MAX_Iter = 5;
+
+			//Current iteration count
+			unsigned int currentCount = 0;
+
+			//Find a new dt that satisfies this equation
+			do
+			{
+				dt -= (currentError - pow(dt, c)) / (-c * pow(dt, c - 1.));
+
+			} while (fabs(currentError - pow(dt, c)) > dtTol && currentCount++ < MAX_Iter);
+		}
+		else
+		{
+			//Nothing to do here
+		}
+
 		//We did not coverged to error we wanted
 		currentParams.satifiesError = false;
 
@@ -267,7 +335,7 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	std::cout << methods.get()->findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
 	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::EULER).error() << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentRunTime << "\n";
-	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.dt;
-	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentTableSize;
-	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.c;
+	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.dt << "\n";
+	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentTableSize << "\n";
+	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.c << "\n";
 }
