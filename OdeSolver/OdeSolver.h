@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <thread>
 #include <vector>
 
 #include "MethodWrapper.h"
@@ -25,9 +26,11 @@ using std::runtime_error;
 using std::bad_alloc;
 using std::cerr;
 using std::pow;
+using std::thread;
 using paramMap = map<unsigned int, OdeSolverParams>;
 using resultNode = vector<StateVector>;
 using results = map<unsigned int, resultNode>;
+using threadVector = vector<thread>;
 
 
 class OdeSolver
@@ -46,6 +49,9 @@ private:
 	//Map of results in the form of nodes
 	results resultMap;
 
+	//vector to store threads
+	threadVector richardsonThreads;
+
 	//Are all the methods explict
 	bool isAllExplict() const;
 
@@ -53,10 +59,19 @@ private:
 	bool isAllImplict() const;
 
 	//Build the richardson tables
-	void runMethod(OdeFunIF*,SolverIF*, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
+	void runMethod(OdeFunIF*, unique_ptr<SolverIF>&, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
 
-	//Find the best set of parameters for each method
-	void findOptimalParams(crvec, OdeFunIF*, const double, const double);
+	//Once the best parameters are founds we can start solving for the next time step
+	void buildSolution(crvec, OdeFunIF*, const double, const double);
+
+	//Update the tables
+	void updateMethod(unique_ptr<SolverIF>&, const OdeSolverParams&, Richardson&, crvec, rvec, const double, const double, const double, OdeFunIF*, const int);
+
+	//Gather all of the parameters for the current method
+	void gatherParameters(OdeSolverParams&, Richardson&, const unsigned int&);
+
+	//Update dt
+	const bool updateDt(OdeSolverParams&);
 
 public:
 

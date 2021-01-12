@@ -56,3 +56,8 @@ rvec Euler::update(crvec			previousState,
 	//Return the new state
 	return newState;
 }
+
+const double Euler::getErrorOrder() const
+{
+	return 2.;
+}

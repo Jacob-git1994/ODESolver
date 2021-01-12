@@ -21,6 +21,7 @@ using std::cerr;
 using std::sqrt;
 using std::pow;
 using std::fabs;
+using std::log;
 
 class Richardson
 {
@@ -64,10 +65,13 @@ public:
 	//Append the result
 	void operator()(const size_t, const size_t, crvec);
 
-	//Get the error and the updated vector
-	double error(rvec);
+	//Get the error, updated vector, and estimate of the orders constant
+	double error(rvec, double&, const double);
 
 	//Get the error ignoring the updated vector
+	double error(double&, const double);
+
+	//Just get the error founds ignorning the other elements
 	double error();
 
 	//Get the table size

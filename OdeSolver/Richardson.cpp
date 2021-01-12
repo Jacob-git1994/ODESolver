@@ -58,16 +58,27 @@ double Richardson::normedError() const
 
 	//Calculate the norm
 	double normVal = 0.;
+
+	//Results norm to normalize the error
+	double normResult = 0.;
 	for (size_t i = 0; i < error.size(); ++i)
 	{
 		normVal += error[i] * error[i];
+		normResult += result[result.size() - 1][result.size() - 1][i] * result[result.size() - 1][result.size() - 1][i];
 	}
 
 	//Return the sqrt of the norm
-	return sqrt(normVal);
+	if (isfinite(normResult))
+	{
+		return sqrt(normVal) / sqrt(normResult);
+	}
+	else
+	{
+		return  sqrt(normVal);
+	}
 }
 
-double Richardson::error(rvec bestResult)
+double Richardson::error(rvec bestResult, double& c, const double leadingOrder)
 {
 	//Get ref to the current object
 	Richardson& currentTable = *this;
@@ -91,6 +102,40 @@ double Richardson::error(rvec bestResult)
 	//Get the last result as that is the "best one"
 	bestResult = result[result.size() - 1][result.size() - 1];
 	currentNormError = normedError();
+
+	//Set c to our approximaation of convergence
+	c = log(currentNormError) / log(stepSize);
+
+	//return error
+	return currentNormError;
+}
+
+double Richardson::error(double& c, const double leadingOrder)
+{
+	//Get ref to the current object
+	Richardson& currentTable = *this;
+
+	//Iterate through the rows of the table
+	for (size_t i = 0; i < result.size() - 1; ++i)
+	{
+		//Iterate through the columns
+		for (size_t j = 0; j <= i; ++j)
+		{
+			//Get the updated result
+			vec updatedResult = (pow(reductionFactor, static_cast<double>(j) + 1.)
+				* result[i + 1][j] - result[i][j])
+				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
+
+			//Save the updated result to the table
+			currentTable(i + 1, j + 1, updatedResult);
+		}
+	}
+
+	//Get the error found
+	currentNormError = normedError();
+
+	//Set c to our approximaation of covergence
+	c = log(currentNormError) / log(stepSize);
 
 	//return error
 	return currentNormError;

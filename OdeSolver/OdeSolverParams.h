@@ -27,13 +27,20 @@ public:
 	double lowerError;
 	double upperError;
 	double currentError;
+	bool satifiesError;
 
 	//Allowed deleta time
+	double minDt;
+	double maxDt;
 	double dt;
 
+	//Error of the constant
+	double c;
+
+	//Parameters for dt
+	double isDtClamped;
+
 	//Time constraints
-	double minRunTime;
-	double maxRunTime;
 	double currentRunTime;
 
 	//Richardson table generation
@@ -61,7 +68,7 @@ public:
 
 OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = {true,false,false,false,false},
 	const array<double, 2>& errorBounds = {.0001,.001},
-	const array<double, 2>& runTimeBound = {10,60},
+	const array<double, 2>& dtBounds = {.01,.1},
 	const array<size_t, 2>& richLevelBounds = {4,8},
 	const array<size_t, 3>& problemSpecifics = {false,false,false},
 	const double& reductionFactorIn = 2.) :
@@ -72,8 +79,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = {true,fa
 	useCrank(allowedMethods[4]),
 	lowerError(errorBounds[0]),
 	upperError(errorBounds[1]),
-	minRunTime(runTimeBound[0]),
-	maxRunTime(runTimeBound[1]),
+	minDt(dtBounds[0]),
+	maxDt(dtBounds[1]),
 	minTableSize(richLevelBounds[0]),
 	maxTableSize(richLevelBounds[1]),
 	isStiff(problemSpecifics[0]),
@@ -83,9 +90,11 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = {true,fa
 	currentTableSize(1),
 	currentRunTime(0.0),
 	dt(.01),
-	redutionFactor(reductionFactorIn)
+	redutionFactor(reductionFactorIn),
+	isDtClamped(false),
+	satifiesError(true),
+	c(-1.0)
 {
-
 	//If the inputs are invalid we do no want to continue
 	if (!checkUserInputs())
 	{
@@ -111,7 +120,7 @@ bool OdeSolverParams::checkUserInputs() const
 	}
 
 	//Make sure the run times are valid
-	if (!((minRunTime > 0. && isfinite(minRunTime) && minRunTime < maxRunTime) && (maxRunTime > 0 && isfinite(maxRunTime) && maxRunTime > minRunTime)))
+	if (!((minDt > 0. && isfinite(minDt) && minDt < maxDt) && (maxDt > 0 && isfinite(maxDt) && maxDt > minDt)))
 	{
 		goodArgs = false;
 	}
@@ -136,8 +145,8 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	lowerError = params.lowerError;
 	upperError = params.upperError;
 	currentError = params.currentError;
-	minRunTime = params.minRunTime;
-	maxRunTime = params.maxRunTime;
+	minDt = params.minDt;
+	maxDt = params.maxDt;
 	currentRunTime = params.currentRunTime;
 	minTableSize = params.minTableSize;
 	maxTableSize = params.maxTableSize;
@@ -147,6 +156,9 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	isFast = params.isFast; 
 	dt = params.dt;
 	redutionFactor = params.redutionFactor;
+	isDtClamped = params.isDtClamped;
+	satifiesError = params.satifiesError;
+	c = params.c;
 
 	//Return this
 	return *this;

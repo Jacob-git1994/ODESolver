@@ -51,6 +51,9 @@ public:
 						const double&,
 						const OdeFunIF*) = 0;
 
+	//Get the power of the error
+	virtual const double getErrorOrder() const = 0;
+
 	//Get the current state
 	inline crvec getCurrentState() const { return currentState; };
 };

@@ -53,9 +53,14 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = .00009;
-	params.lowerError = .000001;
+	params.upperError = .000009;
+	params.lowerError = .0000001;
 	params.redutionFactor = 10.;
+	params.dt = .01;
+	params.minDt = .001;
+	params.maxDt = .01;
+	params.minTableSize = 3;
+	params.maxTableSize = 10;
 
 	OdeSolver solver(params);
 	solver.run(testProblem,ic,0,1);

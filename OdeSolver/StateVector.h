@@ -12,6 +12,7 @@ private:
 	//Our states current time
 	double currentTime;
 
+	//Our current error for the result
 	double currentError;
 
 	//Our state vector for the current time

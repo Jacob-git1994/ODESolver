@@ -43,5 +43,8 @@ public:
 						const double&,
 						const double&,
 						const OdeFunIF*) override;
+
+	//Get the power of the error
+	virtual const double getErrorOrder() const override;
 };
 
