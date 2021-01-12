@@ -65,7 +65,7 @@ int main()
 	OdeSolver solver(params);
 	for (int i = 0; i < 4; ++i)
 	{
-		solver.run(testProblem, ic, 0, 1);
+		solver.run(testProblem, ic, 0, .1);
 	}
 
 	delete testProblem;
