@@ -55,10 +55,10 @@ int main()
 
 	params.upperError = .000009;
 	params.lowerError = .0000001;
-	params.redutionFactor = 10.;
+	params.redutionFactor = 2.;
 	params.dt = .01;
-	params.minDt = .001;
-	params.maxDt = .01;
+	params.minDt = .01;
+	params.maxDt = .1;
 	params.minTableSize = 3;
 	params.maxTableSize = 10;
 

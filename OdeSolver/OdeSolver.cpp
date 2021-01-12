@@ -168,7 +168,7 @@ void OdeSolver::buildSolution(crvec initalCondition, OdeFunIF* problem, const do
 		//Clear out our threads from the previous run (will be added later)
 		richardsonThreads.clear();
 
-		//Set dt to the max dt allowed
+		//Set dt to max dt allowed
 		currentMethodParams.dt = currentMethodParams.maxDt;
 
 		//Get the current time
@@ -224,6 +224,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams)
 	//Check to see if our error has been satisfied.
 	if (currentError >= currentParams.lowerError && currentError <= currentParams.upperError)
 	{
+		//We coverged to error we wanted
+		currentParams.satifiesError = true;
 		return false;
 	}
 	//Did not converge so update parameters
@@ -248,7 +250,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams)
 		double rightDt = pow(desiredErrorRight, 1. / c);
 
 		//Get a dt for the middile
-		dt = (rightDt - leftDt) / 2.;
+		dt = (rightDt + leftDt) / 2.;
+
+		//We did not coverged to error we wanted
+		currentParams.satifiesError = false;
 
 		return true;
 	}
