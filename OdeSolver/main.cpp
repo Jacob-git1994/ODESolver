@@ -8,6 +8,7 @@
 
 #include <valarray>
 #include <iostream>
+#include <cmath>
 
 //using vec = std::valarray<double>;
 using std::cout;
@@ -28,7 +29,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
-	state[0] = 1. * currentState[0];
+	state[0] = std::exp(currentTime);//std::cos(currentTime);
 
 	return state;
 }
@@ -53,20 +54,18 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = .000009;
-	params.lowerError = .0000001;
-	params.redutionFactor = 10.;
+	params.upperError = .0000009;
+	params.lowerError = .00000001;
+	params.redutionFactor = 4.;
 	params.dt = .01;
-	params.minDt = .000001;
-	params.maxDt = .01;
-	params.minTableSize = 3;
-	params.maxTableSize = 5;
+	params.minDt = .00009;
+	params.maxDt = .0001;
+	params.minTableSize = 4;
+	params.maxTableSize = 6;
 
 	OdeSolver solver(params);
-	for (int i = 0; i < 4; ++i)
-	{
-		solver.run(testProblem, ic, 0, .1);
-	}
+		
+	solver.run(testProblem, ic, 0, 1.);
 
 	delete testProblem;
 }

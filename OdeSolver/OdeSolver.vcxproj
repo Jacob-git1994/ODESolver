@@ -104,6 +104,9 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OpenMPSupport>false</OpenMPSupport>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,6 +150,7 @@
     <ClCompile Include="MethodWrapperBase.cpp" />
     <ClCompile Include="OdeSolver.cpp" />
     <ClCompile Include="Richardson.cpp" />
+    <ClCompile Include="RK4.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Euler.h" />
@@ -157,6 +161,7 @@
     <ClInclude Include="OdeSolver.h" />
     <ClInclude Include="OdeSolverParams.h" />
     <ClInclude Include="Richardson.h" />
+    <ClInclude Include="RK4.h" />
     <ClInclude Include="SolverIF.h" />
     <ClInclude Include="StateVector.h" />
   </ItemGroup>

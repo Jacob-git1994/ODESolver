@@ -15,4 +15,16 @@ void MethodWrapper::buildSolvers()
 		cerr << e.what();
 	}
 	//If this fails move onto the next method
+
+	try
+	{
+		//Add Euler method
+		getMethodMap().emplace(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR),
+			std::move(unique_ptr<SolverIF>(new RK4)));
+	}
+	catch (exception& e)
+	{
+		cerr << e.what();
+	}
+	//If this fails move onto the next method
 }

@@ -8,6 +8,7 @@
 #include "Euler.h"
 #include "MethodWrapperBase.h"
 #include "MethodWrapperIF.h"
+#include "RK4.h"
 #include "SolverIF.h"
 
 //Using these to simplify typing

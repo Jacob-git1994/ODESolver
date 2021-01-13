@@ -89,25 +89,11 @@ OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 	}
 }
 
-void OdeSolver::runMethod(OdeFunIF* problem, unique_ptr<SolverIF>& method, Richardson& tables, crvec initalCondition, rvec newState, const OdeSolverParams& currentParams, const double initalTime, const double newTime)
+void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method, Richardson& tables, crvec initalCondition, rvec newState, const OdeSolverParams& currentParams, const double initalTime, const double newTime)
 {
 	//Loop over all the tables
 	for (int i = 0; i < tables.getTableSize(); ++i)
 	{
-		//Solve for the next time step in parallel
-		/*Does not support this yet..
-		richardsonThreads.push_back(thread(&OdeSolver::updateMethod, 
-			std::ref(method), 
-			currentParams, 
-			std::ref(tables), 
-			initalCondition, 
-			std::ref(newState), 
-			currentParams.dt, 
-			initalTime, newTime, 
-			std::ref(problem), 
-			i));
-		*/
-
 		//Update the tables
 		updateMethod(method, currentParams, tables, initalCondition, newState, currentParams.dt, initalTime, newTime, problem, i);
 	}
@@ -121,7 +107,7 @@ void OdeSolver::runMethod(OdeFunIF* problem, unique_ptr<SolverIF>& method, Richa
 	*/
 }
 
-void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams& currentParams, Richardson& tables, crvec intialCondition, rvec newState, const double dt, const double initalTime, const double newTime, OdeFunIF* problem, const int i)
+void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams& currentParams, Richardson& tables, crvec intialCondition, rvec newState, const double dt, const double initalTime, const double newTime, const OdeFunIF* problem, const int i)
 {
 	//Solve for the next time step
 	method->update(intialCondition, newState, currentParams.dt / pow(tables.getReductionFactor(), static_cast<double>(i)), initalTime, newTime, problem);
@@ -139,87 +125,70 @@ void OdeSolver::gatherParameters(OdeSolverParams& currentParams, Richardson& cur
 	currentTable = methods.get()->getTableMap().find(currentMethod)->second;
 }
 
-void OdeSolver::buildSolution(crvec initalCondition, OdeFunIF* problem, const double beginTime, const double endTime)
+void OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned int currentMethodId, crvec initalCondition, const OdeFunIF* problem, const double beginTime, const double endTime)
 {
-	//Initalize all the methods
-	methods.get()->updateAll(initalCondition, generalParams.minTableSize, generalParams.redutionFactor, generalParams.dt);
+	//Current method parameters
+	OdeSolverParams& currentMethodParams = params.find(currentMethodId)->second;
 
-	//Get the method map
-	methodMap& allowedMethods = methods.get()->getMethodMap();
+	//Reset the satisfaction criteria
+	currentMethodParams.satifiesError = false;
 
-	//Iterate over all the methods
-	for (methodMap::iterator methodItr = allowedMethods.begin(); methodItr != allowedMethods.end(); ++methodItr)
+	//Get our richardson tables
+	Richardson& currentTable = methods.get()->getTableMap().find(currentMethodId)->second;
+
+	//Initalize our vector for the updated result
+	vec newState;
+
+	//Set our inital convergence criterial the the theoretical local truncation error 
+	currentMethodParams.c = currentMethod->getErrorOrder() + static_cast<double>(currentMethodParams.minTableSize);
+
+	//Set the currentError to a default value
+	currentMethodParams.currentError = 99999.;
+
+	//Update dt with our convergence criteria
+	updateDt(currentMethodParams, true);
+
+	//Get the current time
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+
+	//initalize our current starting table size to the min table size
+	currentMethodParams.currentTableSize = generalParams.minTableSize;
+
+	int counter = 0;
+
+	//Run each result several times
+	do
 	{
-		//Current method id
-		unsigned int currentMethodId = methodItr->first;
+		//Update our table
+		currentTable.initalizeSteps(currentMethodParams.redutionFactor, currentMethodParams.dt);
 
-		//Current method parameters
-		OdeSolverParams& currentMethodParams = params.find(currentMethodId)->second;
+		//Update the Richardson Table Size
+		currentTable.BuildTables(currentMethodParams.currentTableSize, initalCondition.size());
 
-		//Reset the satisfaction criteria
-		currentMethodParams.satifiesError = false;
+		//Run our method
+		runMethod(
+			problem,
+			currentMethod,
+			currentTable,
+			initalCondition,
+			newState,
+			currentMethodParams,
+			beginTime,
+			endTime);
 
-		//Get our richardson tables
-		Richardson& currentTable = methods.get()->getTableMap().find(currentMethodId)->second;
+		//Update the results with the new error
+		currentMethodParams.currentError = currentTable.error(newState, currentMethodParams.c, currentMethod->getErrorOrder());
 
-		//Initalize our vector for the updated result
-		vec newState;
+		//std::cout << currentMethodParams.c << "\n";
 
-		//Clear out our threads from the previous run (will be added later)
-		richardsonThreads.clear();
+		//Build more tables if the error is greater then the greatest error
+	} while (updateDt(currentMethodParams, false));// && currentMethodParams.currentTableSize++ < currentMethodParams.maxTableSize);
 
-		//Set our inital convergence criterial the the theoretical local truncation error for the first pass of the table generation
-		currentMethodParams.c = methodItr->second->getErrorOrder() + currentMethodParams.minTableSize;
+	//Get the second time point
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
-		//Set the currentError to a default value
-		currentMethodParams.currentError = 99999.;
-
-		//Update dt with our convergence criteria
-		updateDt(currentMethodParams, true);
-
-		//Get the current time
-		std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-
-		//initalize our current starting table size to the min table size
-		currentMethodParams.currentTableSize = generalParams.minTableSize;
-
-		//Run each result several times
-		do
-		{
-			//Update our table
-			currentTable.initalizeSteps(currentMethodParams.redutionFactor, currentMethodParams.dt);
-
-			//Update the Richardson Table Size
-			currentTable.BuildTables(currentMethodParams.currentTableSize, initalCondition.size());
-
-			//Run our method
-			runMethod(
-				problem,
-				methodItr->second,
-				currentTable,
-				initalCondition,
-				newState,
-				currentMethodParams,
-				beginTime,
-				endTime);
-
-			//Update the results with the new error
-			currentMethodParams.currentError = currentTable.error(newState, currentMethodParams.c, methodItr->second->getErrorOrder());
-
-			//std::cout << currentMethodParams.c << "\n";
-
-			//Build more tables if the error is greater then the greatest error
-		} while (updateDt(currentMethodParams, false) && currentMethodParams.currentTableSize++ < currentMethodParams.maxTableSize);
-
-		//Correct the current table size of its last increment
-		currentMethodParams.currentTableSize--;
-
-		//Get the second time point
-		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-
-		//Save the duriation of time
-		currentMethodParams.currentRunTime = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
-	}
+	//Save the duriation of time
+	currentMethodParams.currentRunTime = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
 }
 
 const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstPassThrough)
@@ -243,6 +212,20 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Get our convergence estimate
 		double& c = currentParams.c;
 
+		//Estimate our current constant if not first pass through
+		double funcDerv = 0.0;
+		if (!firstPassThrough)
+		{
+			funcDerv = currentError / pow(dt, c);
+		}
+		else
+		{
+			funcDerv = 1.0;
+		}
+
+		//Set our clamped flag to false
+		currentParams.isDtClamped = false;
+
 		//Get our desired lower error
 		const double& desiredErrorLeft = currentParams.lowerError;
 
@@ -250,10 +233,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		const double& desiredErrorRight = currentParams.upperError;
 
 		//Get our dt for lower desired error
-		double leftDt = pow(desiredErrorLeft, 1. / c);
+		double leftDt = pow(desiredErrorLeft / funcDerv, 1. / c);
 
 		//Get our dt for upper desired error
-		double rightDt = pow(desiredErrorRight, 1. / c);
+		double rightDt = pow(desiredErrorRight / funcDerv, 1. / c);
 
 		//Get a dt for the middile
 		dt = (rightDt + leftDt) / 2.;
@@ -264,31 +247,17 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			//Reset dt to the smallest parameters
 			dt = currentParams.minDt;
 		}
-		//Dt is outside are min dt window we want to clamp it then incrementally update it
+		//Dt is outside are min dt window we want to clamp it
 		if (dt < currentParams.minDt && !firstPassThrough)
 		{
 			//Set the clamping flag
 			currentParams.isDtClamped = true;
 
+			//Update the table size to hope for better convergence
+			currentParams.currentTableSize++;
+
 			//Clamp dt
 			dt = currentParams.minDt;
-
-			//Try to smooth out dt to match the error better
-			//Initalize our error tolerance
-			const double dtTol = 1e-3;
-
-			//Initalize our max iterations
-			const unsigned int MAX_Iter = 5;
-
-			//Current iteration count
-			unsigned int currentCount = 0;
-
-			//Find a new dt that satisfies this equation
-			do
-			{
-				dt -= (currentError - pow(dt, c)) / (-c * pow(dt, c - 1.));
-
-			} while (fabs(currentError - pow(dt, c)) > dtTol && currentCount++ < MAX_Iter);
 		}
 		else if (dt > currentParams.maxDt && !firstPassThrough)
 		{
@@ -298,22 +267,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			//Clamp dt
 			dt = currentParams.maxDt;
 
-			//Try to smooth out dt to match the error better
-			//Initalize our error tolerance
-			const double dtTol = 1e-3;
-
-			//Initalize our max iterations
-			const unsigned int MAX_Iter = 5;
-
-			//Current iteration count
-			unsigned int currentCount = 0;
-
-			//Find a new dt that satisfies this equation
-			do
-			{
-				dt -= (currentError - pow(dt, c)) / (-c * pow(dt, c - 1.));
-
-			} while (fabs(currentError - pow(dt, c)) > dtTol && currentCount++ < MAX_Iter);
+			//Update the table size to hope for better convergence
+			currentParams.currentTableSize--;
 		}
 		else
 		{
@@ -323,14 +278,53 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//We did not coverged to error we wanted
 		currentParams.satifiesError = false;
 
-		return true;
+		//If dt is too large we want to decrease the result
+		if (currentParams.currentTableSize < currentParams.minTableSize)
+		{
+			//Clamp the table
+			currentParams.currentTableSize = currentParams.minTableSize;
+			return true;
+		}
+		//If dt is too small we dont want to keep growing
+		else if (currentParams.currentTableSize > currentParams.maxTableSize)
+		{
+			//Reduce the table size if it is too large
+			currentParams.currentTableSize--;
+			return false;
+		}
+		else
+		{
+			return true;
+		}
 	}
 }
 
 void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime)
 {
-	//Solver for the next time step
-	buildSolution(initalConditions, problem, beginTime, endTime);
+	//Initalize all the methods
+	methods.get()->updateAll(initalConditions, generalParams.minTableSize, generalParams.redutionFactor, generalParams.dt);
+
+	//Get the method map
+	methodMap& allowedMethods = methods->getMethodMap();
+
+	//Clear out our threads from the previous run (will be added later)
+	richardsonThreads.clear();
+
+	//Iterate over all the methods
+	for (methodMap::iterator methodItr = allowedMethods.begin(); methodItr != allowedMethods.end(); ++methodItr)
+	{
+		//Solver for the next time step for the current method
+		//richardsonThreads.push_back(thread(&OdeSolver::buildSolution, methodItr->second, initalConditions, problem, beginTime, endTime));
+		buildSolution(methodItr->second, methodItr->first, initalConditions, problem, beginTime, endTime);
+	}
+
+	//Join all the threads to get the results
+	/*
+	for (vector<thread>::iterator threadItr = richardsonThreads.begin(); threadItr != richardsonThreads.end(); ++threadItr)
+	{
+		threadItr->join();
+	}
+	*/
 
 	std::cout << methods.get()->findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
 	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::EULER).error() << "\n";
@@ -338,4 +332,11 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.dt << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentTableSize << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.c << "\n";
+
+	std::cout << methods.get()->findMethod(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR)->getCurrentState()[0] << "\n";
+	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR).error() << "\n";
+	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentRunTime << "\n";
+	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.dt << "\n";
+	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentTableSize << "\n";
+	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.c << "\n";
 }
