@@ -28,7 +28,7 @@ rvec Euler::update(crvec			previousState,
 				   rvec				newState,
 				   const double&	dt,
 				   const double&	tBegin,
-				   const double&	tEnd,
+				   const int&		numOfSteps,
 	               const OdeFunIF*	functionVector)
 {
 	//Update the currentState
@@ -38,7 +38,7 @@ rvec Euler::update(crvec			previousState,
 	double currentTime = tBegin;
 
 	//Iterate through time
-	while (currentTime <= tEnd)
+	for (int i = 0; i < numOfSteps; ++i)
 	{
 		//Get the function vector at the current time
 		k1 = functionVector->operator()(k1, currentState, currentTime);

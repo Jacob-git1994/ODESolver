@@ -56,13 +56,16 @@ void Richardson::operator()(const size_t rowIndx, const size_t colIndx, crvec cu
 double Richardson::normedError() const
 {
 	//Get the error vector
-	vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 2][result.size() - 2];
+	//vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 1][result.size() - 2];
+	vec error = result[result.size() - 1][result.size() - 1] - result[0][0];
 
 	//Calculate the norm
 	double normVal = 0.;
 
 	//Results norm to normalize the error
 	double normResult = 0.;
+
+	//find the norms
 	for (size_t i = 0; i < error.size(); ++i)
 	{
 		normVal += error[i] * error[i];
@@ -70,7 +73,7 @@ double Richardson::normedError() const
 	}
 
 	//Return the sqrt of the norm
-	if (false)//isfinite(normResult))
+	if (false) //(isfinite(normResult))
 	{
 		return sqrt(normVal) / sqrt(normResult);
 	}
@@ -86,18 +89,18 @@ double Richardson::error(rvec bestResult, double& c, const double leadingOrder)
 	Richardson& currentTable = *this;
 
 	//Iterate through the rows of the table
-	for (size_t i = 0; i < result.size()-1; ++i)
+	for (size_t i = 1; i < result.size(); ++i)
 	{
 		//Iterate through the columns
-		for (size_t j = 0; j <= i; ++j)
+		for (size_t j = 0; j < i; ++j)
 		{
 			//Get the updated result
 			vec updatedResult = (pow(reductionFactor, static_cast<double>(j) + 1.)
-				* result[i+1][j] - result[i][j])
+				* result[i][j] - result[i - 1][j])
 				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
 
 			//Save the updated result to the table
-			currentTable(i + 1, j + 1, updatedResult);
+			currentTable(i, j + 1, std::move(updatedResult));
 		}
 	}
 
@@ -118,18 +121,18 @@ double Richardson::error(double& c, const double leadingOrder)
 	Richardson& currentTable = *this;
 
 	//Iterate through the rows of the table
-	for (size_t i = 0; i < result.size() - 1; ++i)
+	for (size_t i = 1; i < result.size(); ++i)
 	{
 		//Iterate through the columns
-		for (size_t j = 0; j <= i; ++j)
+		for (size_t j = 0; j < i; ++j)
 		{
 			//Get the updated result
 			vec updatedResult = (pow(reductionFactor, static_cast<double>(j) + 1.)
-				* result[i + 1][j] - result[i][j])
+				* result[i][j] - result[i - 1][j])
 				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
 
 			//Save the updated result to the table
-			currentTable(i + 1, j + 1, updatedResult);
+			currentTable(i, j + 1, std::move(updatedResult));
 		}
 	}
 
@@ -149,18 +152,18 @@ double Richardson::error()
 	Richardson& currentTable = *this;
 
 	//Iterate through the rows of the table
-	for (size_t i = 0; i < result.size() - 1; ++i)
+	for (size_t i = 1; i < result.size(); ++i)
 	{
 		//Iterate through the columns
-		for (size_t j = 0; j <= i; ++j)
+		for (size_t j = 0; j < i; ++j)
 		{
 			//Get the updated result
 			vec updatedResult = (pow(reductionFactor, static_cast<double>(j) + 1.)
-				* result[i + 1][j] - result[i][j])
+				* result[i][j] - result[i - 1][j])
 				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
 
 			//Save the updated result to the table
-			currentTable(i + 1, j + 1, std::move(updatedResult));
+			currentTable(i, j + 1, std::move(updatedResult));
 		}
 	}
 

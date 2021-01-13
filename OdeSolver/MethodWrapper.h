@@ -15,7 +15,6 @@
 using std::exception;
 using std::map;
 using std::unique_ptr;
-using std::make_unique;
 using std::cerr;
 using methodPtr = unique_ptr<SolverIF>;
 using methodMap = map<unsigned int, methodPtr>;

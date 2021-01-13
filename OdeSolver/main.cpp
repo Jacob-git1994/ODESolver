@@ -54,18 +54,18 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = .0000009;
-	params.lowerError = .00000001;
-	params.redutionFactor = 4.;
+	params.upperError = .00009;
+	params.lowerError = .000001;
+	params.redutionFactor = 2.;
 	params.dt = .01;
-	params.minDt = .00009;
-	params.maxDt = .0001;
-	params.minTableSize = 4;
-	params.maxTableSize = 6;
+	params.minDt = .000009;
+	params.maxDt = .00001;
+	params.minTableSize = 2;
+	params.maxTableSize = 4;
 
 	OdeSolver solver(params);
 		
-	solver.run(testProblem, ic, 0, 1.);
+	solver.run(testProblem, ic, 0., 1.,1000);
 
 	delete testProblem;
 }

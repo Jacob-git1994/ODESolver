@@ -28,7 +28,7 @@ rvec RK4::update(
 	rvec			newState,
 	const double&	dt,
 	const double&	beginTime,
-	const double&	endTime,
+	const int&		numOfSteps,
 	const OdeFunIF* problem)
 {
 	//Update the current state
@@ -38,7 +38,7 @@ rvec RK4::update(
 	double currentTime = beginTime;
 
 	//Iterate through time
-	while (currentTime <= endTime)
+	for (int i = 0; i < numOfSteps; ++i)
 	{
 		//Update all our solvers
 		k1 = problem->operator()(k1, currentState, currentTime);

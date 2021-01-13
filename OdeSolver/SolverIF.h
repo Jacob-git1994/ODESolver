@@ -48,7 +48,7 @@ public:
 						rvec,
 						const double&,
 						const double&,
-						const double&,
+						const int&,
 						const OdeFunIF*) = 0;
 
 	//Get the power of the error

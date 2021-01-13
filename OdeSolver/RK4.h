@@ -40,7 +40,7 @@ public:
 		rvec,
 		const double&,
 		const double&,
-		const double&,
+		const int&,
 		const OdeFunIF*) override;
 
 	//Get the power of the error

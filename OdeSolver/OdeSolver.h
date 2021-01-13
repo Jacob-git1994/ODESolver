@@ -62,7 +62,7 @@ private:
 	void runMethod(const OdeFunIF*, unique_ptr<SolverIF>&, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
 
 	//Once the best parameters are founds we can start solving for the next time step
-	void buildSolution(unique_ptr<SolverIF>&, const unsigned int, crvec, const OdeFunIF*, const double, const double);
+	vec buildSolution(unique_ptr<SolverIF>&, const unsigned int, crvec, const OdeFunIF*, const double, const double);
 
 	//Update the tables
 	void updateMethod(unique_ptr<SolverIF>&, const OdeSolverParams&, Richardson&, crvec, rvec, const double, const double, const double, const OdeFunIF*, const int);
@@ -71,7 +71,7 @@ private:
 	void gatherParameters(OdeSolverParams&, Richardson&, const unsigned int&);
 
 	//Update dt
-	const bool updateDt(OdeSolverParams&, const bool);
+	const bool updateDt(OdeSolverParams&, const bool, const double, const double);
 
 public:
 
@@ -90,6 +90,7 @@ public:
 	//Destructor using default
 	~OdeSolver() = default;
 
-	void run(OdeFunIF*, crvec,const double, const double);
+	//Run our method
+	void run(OdeFunIF*, crvec,const double, const double, const unsigned int);
 };
 

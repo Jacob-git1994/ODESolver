@@ -110,7 +110,7 @@ void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method,
 void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams& currentParams, Richardson& tables, crvec intialCondition, rvec newState, const double dt, const double initalTime, const double newTime, const OdeFunIF* problem, const int i)
 {
 	//Solve for the next time step
-	method->update(intialCondition, newState, currentParams.dt / pow(tables.getReductionFactor(), static_cast<double>(i)), initalTime, newTime, problem);
+	method->update(intialCondition, newState, currentParams.dt / pow(tables.getReductionFactor(), static_cast<double>(i)), initalTime, static_cast<int>(pow(tables.getReductionFactor(), static_cast<double>(i))), problem);
 
 	//Add the result into the tables
 	tables(i, 0, newState);
@@ -125,7 +125,7 @@ void OdeSolver::gatherParameters(OdeSolverParams& currentParams, Richardson& cur
 	currentTable = methods.get()->getTableMap().find(currentMethod)->second;
 }
 
-void OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned int currentMethodId, crvec initalCondition, const OdeFunIF* problem, const double beginTime, const double endTime)
+vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned int currentMethodId, crvec initalCondition, const OdeFunIF* problem, const double beginTime, const double endTime)
 {
 	//Current method parameters
 	OdeSolverParams& currentMethodParams = params.find(currentMethodId)->second;
@@ -146,7 +146,7 @@ void OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned
 	currentMethodParams.currentError = 99999.;
 
 	//Update dt with our convergence criteria
-	updateDt(currentMethodParams, true);
+	updateDt(currentMethodParams, true, beginTime, endTime);
 
 	//Get the current time
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -182,16 +182,19 @@ void OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned
 		//std::cout << currentMethodParams.c << "\n";
 
 		//Build more tables if the error is greater then the greatest error
-	} while (updateDt(currentMethodParams, false));// && currentMethodParams.currentTableSize++ < currentMethodParams.maxTableSize);
+	} while (updateDt(currentMethodParams, false, beginTime, endTime));// && currentMethodParams.currentTableSize++ < currentMethodParams.maxTableSize);
 
 	//Get the second time point
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	//Save the duriation of time
 	currentMethodParams.currentRunTime = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
+
+	//Return the new state found
+	return newState;
 }
 
-const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstPassThrough)
+const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstPassThrough, const double beginTime, const double endTime)
 {
 	//Get our current error
 	const double& currentError = currentParams.currentError;
@@ -275,6 +278,16 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			//Nothing to do here
 		}
 
+		//Clamp dt if near the end
+		if (false)//currentParams.dt + beginTime > endTime)
+		{
+			currentParams.dt = endTime - beginTime;
+		}
+		else
+		{
+			//Do nothing here
+		}
+
 		//We did not coverged to error we wanted
 		currentParams.satifiesError = false;
 
@@ -299,7 +312,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	}
 }
 
-void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime)
+void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime, const unsigned int nodes)
 {
 	//Initalize all the methods
 	methods.get()->updateAll(initalConditions, generalParams.minTableSize, generalParams.redutionFactor, generalParams.dt);
@@ -313,18 +326,24 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	//Iterate over all the methods
 	for (methodMap::iterator methodItr = allowedMethods.begin(); methodItr != allowedMethods.end(); ++methodItr)
 	{
-		//Solver for the next time step for the current method
-		//richardsonThreads.push_back(thread(&OdeSolver::buildSolution, methodItr->second, initalConditions, problem, beginTime, endTime));
-		buildSolution(methodItr->second, methodItr->first, initalConditions, problem, beginTime, endTime);
-	}
+		//Save our current time
+		double currentTime = beginTime;
 
-	//Join all the threads to get the results
-	/*
-	for (vector<thread>::iterator threadItr = richardsonThreads.begin(); threadItr != richardsonThreads.end(); ++threadItr)
-	{
-		threadItr->join();
+		//Save our currentState
+		valarray<double> currentState = initalConditions;
+
+		//Get this methods dt
+		double& dt = params.find(methodItr->first)->second.dt;
+
+		while (currentTime <= endTime)
+		{
+			//Solver for the next time step for the current method
+			currentState = buildSolution(methodItr->second, methodItr->first, currentState, problem, currentTime, endTime);
+
+			//Update the time
+			currentTime = currentTime + dt;
+		}
 	}
-	*/
 
 	std::cout << methods.get()->findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
 	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::EULER).error() << "\n";
