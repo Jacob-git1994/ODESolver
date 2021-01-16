@@ -69,9 +69,6 @@ private:
 	//Update the tables
 	void updateMethod(unique_ptr<SolverIF>&, const OdeSolverParams&, Richardson&, crvec, rvec, const double, const double, const double, const OdeFunIF*, const int);
 
-	//Gather all of the parameters for the current method
-	void gatherParameters(OdeSolverParams&, Richardson&, const unsigned int&);
-
 	//Update dt
 	const bool updateDt(OdeSolverParams&, const bool, const double, const double);
 

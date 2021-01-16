@@ -60,7 +60,7 @@ OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 	//Initalize our methods
 	try
 	{
-		methods.get()->initalize();
+		methods->initalize();
 	}
 	catch (exception& e)
 	{
@@ -97,14 +97,6 @@ void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method,
 		//Update the tables
 		updateMethod(method, currentParams, tables, initalCondition, newState, currentParams.dt, initalTime, newTime, problem, i);
 	}
-
-	//Join everything back together (Not implimented yet)
-	/*
-	for (threadVector::iterator vectorItr = richardsonThreads.begin(); vectorItr != richardsonThreads.end(); ++vectorItr)
-	{
-		vectorItr->join();
-	}
-	*/
 }
 
 void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams& currentParams, Richardson& tables, crvec intialCondition, rvec newState, const double dt, const double initalTime, const double newTime, const OdeFunIF* problem, const int i)
@@ -116,25 +108,16 @@ void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams
 	tables(i, 0, newState);
 }
 
-void OdeSolver::gatherParameters(OdeSolverParams& currentParams, Richardson& currentTable, const unsigned int& currentMethod)
-{
-	//Get our current parameters
-	currentParams = params.find(currentMethod)->second;
-
-	//Get our current table
-	currentTable = methods.get()->getTableMap().find(currentMethod)->second;
-}
-
 vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned int currentMethodId, crvec initalCondition, const OdeFunIF* problem, const double beginTime, const double endTime)
 {
 	//Current method parameters
 	OdeSolverParams& currentMethodParams = params.find(currentMethodId)->second;
 
-	//Reset the satisfaction criteria
-	currentMethodParams.satifiesError = false;
-
 	//Get our richardson tables
 	Richardson& currentTable = methods.get()->getTableMap().find(currentMethodId)->second;
+
+	//Reset the satisfaction criteria
+	currentMethodParams.satifiesError = false;
 
 	//Initalize our vector for the updated result
 	vec newState;
