@@ -201,7 +201,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Set the current table size
 		currentParams.currentTableSize = currentParams.minTableSize;
 	}
-	//We have converged
+	//We have converged (add upgrade check as well later but smaller step sizes is fine...)
 	else if (!firstPassThrough && currentError <= desiredError && !currentParams.lastRun)
 	{
 		//Break our loop
