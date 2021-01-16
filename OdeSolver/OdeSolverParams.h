@@ -24,7 +24,6 @@ public:
 	bool useCrank;
 
 	//Error Bounds Allowed
-	double lowerError;
 	double upperError;
 	double currentError;
 	bool satifiesError;
@@ -80,7 +79,6 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	useRK4(allowedMethods[2]),
 	useImplictEuler(allowedMethods[3]),
 	useCrank(allowedMethods[4]),
-	lowerError(errorBounds[0]),
 	upperError(errorBounds[1]),
 	minDt(dtBounds[0]),
 	maxDt(dtBounds[1]),
@@ -112,7 +110,7 @@ bool OdeSolverParams::checkUserInputs() const
 	bool goodArgs = true;
 
 	//Make sure the error inputs are valid
-	if (!((lowerError > 0. && isfinite(lowerError) && lowerError < upperError) && (upperError > 0 && isfinite(upperError) && upperError > lowerError)))
+	if (!(upperError > 0 && isfinite(upperError)))
 	{
 		goodArgs = false;
 	}
@@ -146,7 +144,6 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	useRK4 = params.useRK4;
 	useImplictEuler = params.useImplictEuler;
 	useCrank = params.useCrank;
-	lowerError = params.lowerError;
 	upperError = params.upperError;
 	currentError = params.currentError;
 	minDt = params.minDt;

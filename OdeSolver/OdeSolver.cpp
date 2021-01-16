@@ -142,17 +142,11 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned 
 	//Set our inital convergence criterial the the theoretical local truncation error 
 	currentMethodParams.c = currentMethod->getErrorOrder() + static_cast<double>(currentMethodParams.minTableSize);
 
-	//Set our current error
-	currentMethodParams.currentError = 1.0;
-
 	//Update dt with our convergence criteria
 	updateDt(currentMethodParams, true, beginTime, endTime);
 
 	//Get the current time
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-
-	//initalize our current starting table size to the min table size
-	currentMethodParams.currentTableSize = generalParams.minTableSize;
 
 	//Run each result several times
 	do
@@ -194,126 +188,78 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned 
 
 const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstPassThrough, const double beginTime, const double endTime)
 {
-	//Get our current error
+	//Get our variables to use to upgrade dt
+	double& dt = currentParams.dt;
+	const double& covergenceEstimate = currentParams.c;
 	const double& currentError = currentParams.currentError;
+	const double& desiredError = currentParams.upperError;
+	const double& minDtUpgrade = currentParams.minDt;
+	const double& maxDtUpgrade = currentParams.minDt;
+	double funcDerv = 0.0;
+	double desiredUpgrade = 0.0;
 
-	//Check to see if we are less than the greatest allowed error to show convergence
-	if (currentError <= currentParams.upperError || currentParams.lastRun)
+	//Reset dt if it would fall outside our bounds
+	if (dt + beginTime >= endTime && !currentParams.lastRun)
 	{
-		//We coverged to error we wanted
-		currentParams.satifiesError = true;
+		//Set dt to the remaining difference
+		dt = endTime - beginTime;
+
+		//Set the last run flag
+		currentParams.lastRun = true;
+
+		//Set the table size to max to try and get a good convergence
+		currentParams.currentTableSize = currentParams.maxTableSize;
+
+		//Run one more iteration
+		return true;
+	}
+
+	//If this is first pass through we dont want to break
+	if (firstPassThrough && !currentParams.lastRun)
+	{
+		//Set the current table size
+		currentParams.currentTableSize = currentParams.minTableSize;
+	}
+	else if (!firstPassThrough && currentError <= desiredError && !currentParams.lastRun)
+	{
 		return false;
 	}
-	//Did not converge so update parameters
+	//We did not converge to desired solution
+	else if (!currentParams.lastRun)
+	{
+		//Set a guess for the derivative
+		funcDerv = currentError / pow(dt, covergenceEstimate);
+
+		//Get an estimate on how much we want to increase dt
+		double desiredUpgrade = pow(desiredError / (funcDerv * currentError), 1. / covergenceEstimate);
+		desiredUpgrade = std::max(desiredUpgrade, 1.0 / currentParams.redutionFactor);
+		desiredUpgrade = std::min(desiredUpgrade, maxDtUpgrade);
+
+		//Update our dt
+		dt *= .9 * desiredUpgrade;
+
+		//Update the table size
+		currentParams.currentTableSize++;
+
+		//Check to ensure we clamp table size
+		if (currentParams.currentTableSize > currentParams.maxTableSize)
+		{
+			currentParams.currentTableSize = currentParams.maxTableSize;
+		}
+		else if (currentParams.currentTableSize < currentParams.minTableSize)
+		{
+			currentParams.currentTableSize = currentParams.minTableSize;
+		}
+
+		return true;
+	}
+	//We ran the last time
 	else
 	{
-		//Get our dt
-		double& dt = currentParams.dt;
-
-		//Get our convergence estimate
-		double& c = currentParams.c;
-
-		//Estimate our current constant if not first pass through
-		double funcDerv = 0.0;
-		if (!firstPassThrough)
-		{
-			funcDerv = currentError / pow(dt, c);
-		}
-		else
-		{
-			funcDerv = 1.0;
-		}
-
-		//Set our clamped flag to false
-		currentParams.isDtClamped = false;
-
-		//Get our desired lower error
-		const double& desiredErrorLeft = currentParams.lowerError;
-
-		//Get our desired upper error
-		const double& desiredErrorRight = currentParams.upperError;
-
-		double leftDtUpgrade = 0.0;
-		double rightDtUpgrade = 0.0;
-
-		//Get our dt for lower desired error
-		leftDtUpgrade = pow(desiredErrorLeft / (currentError * funcDerv), 1. / c);
-
-		//Get our dt for upper desired error
-		rightDtUpgrade = pow(desiredErrorRight / (currentError * funcDerv), 1. / c);
-
-		//Get a dt for the middile
-		double dtLeft = leftDtUpgrade;
-		double dtRight = rightDtUpgrade;
-		dt *= dtRight;// (dtLeft + dtRight) / 2.0;
-
-		//Reset dt if it gets too small (the program would never finish)
-		if (!isfinite(dt) && !firstPassThrough)
-		{
-			//Reset dt to the smallest parameters
-			dt = currentParams.minDt;
-		}
-		//Dt is outside are min dt window we want to clamp it
-		if (dt < currentParams.minDt && !firstPassThrough)
-		{
-			//Set the clamping flag
-			currentParams.isDtClamped = true;
-
-			//Update the table size to hope for better convergence
-			currentParams.currentTableSize++;
-
-			//Clamp dt
-			dt = currentParams.minDt;
-		}
-		else if (dt > currentParams.maxDt && !firstPassThrough)
-		{
-			//Set the clamping flag
-			currentParams.isDtClamped = true;
-
-			//Clamp dt
-			dt = currentParams.maxDt;
-
-			//Update the table size to hope for better convergence
-			currentParams.currentTableSize--;
-		}
-		else
-		{
-			//Nothing to do here
-		}
-
-		//Clamp dt if near the end
-		if (currentParams.dt + beginTime > endTime)
-		{
-			currentParams.dt = endTime - beginTime;
-			currentParams.lastRun = true;
-		}
-		else
-		{
-			//Do nothing here
-		}
-
-		//We did not coverged to error we wanted
-		currentParams.satifiesError = false;
-
-		//If dt is too large we want to decrease the result
-		if (currentParams.currentTableSize < currentParams.minTableSize)
-		{
-			//Clamp the table
-			currentParams.currentTableSize = currentParams.minTableSize;
-			return true;
-		}
-		//If dt is too small we dont want to keep growing
-		else if (currentParams.currentTableSize > currentParams.maxTableSize)
-		{
-			//Reduce the table size if it is too large
-			currentParams.currentTableSize--;
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+		return false;
 	}
+
+	return true;
 }
 
 void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime, const unsigned int nodes)
@@ -339,16 +285,13 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 		//Get this methods dt
 		double& dt = params.find(methodItr->first)->second.dt;
 
-		//Set dt to an inital guess
-		dt = params.find(methodItr->first)->second.maxDt;
-
-		while (currentTime <= endTime)
+		while (currentTime < endTime)
 		{
 			//Solver for the next time step for the current method
 			currentState = buildSolution(methodItr->second, methodItr->first, currentState, problem, currentTime, endTime);
 
 			//Update the time
-			currentTime = currentTime + dt;
+			currentTime += dt;
 		}
 	}
 

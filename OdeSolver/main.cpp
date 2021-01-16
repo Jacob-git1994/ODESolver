@@ -55,13 +55,12 @@ int main()
 	OdeSolverParams params;
 
 	params.upperError = .0009;
-	params.lowerError = .00001;
 	params.redutionFactor = 2.;
-	params.dt = .01;
-	params.minDt = .0009;
-	params.maxDt = .001;
-	params.minTableSize = 2;
-	params.maxTableSize = 4;
+	params.dt = .1;
+	params.minDt = .5;
+	params.maxDt = 2.;
+	params.minTableSize = 4;
+	params.maxTableSize = 6;
 
 	OdeSolver solver(params);
 		
