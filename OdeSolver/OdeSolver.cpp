@@ -161,7 +161,7 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned 
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	//Save the duriation of time
-	currentMethodParams.currentRunTime = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
+	currentMethodParams.currentRunTime += std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
 
 	//Return the new state found
 	return newState;

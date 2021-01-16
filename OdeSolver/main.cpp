@@ -59,8 +59,8 @@ int main()
 	params.dt = .01;
 	params.minDt = .25;
 	params.maxDt = 2.;
-	params.minTableSize = 2;
-	params.maxTableSize = 3;
+	params.minTableSize = 8;
+	params.maxTableSize = 15;
 
 	OdeSolver solver(params);
 		
