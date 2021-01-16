@@ -34,6 +34,9 @@ public:
 	double maxDt;
 	double dt;
 
+	//flag for last run
+	bool lastRun;
+
 	//Error of the constant
 	double c;
 
@@ -66,11 +69,11 @@ public:
 	inline const OdeSolverParams& operator=(const OdeSolverParams&);
 };
 
-OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = {true,false,false,false,false},
-	const array<double, 2>& errorBounds = {.0001,.001},
-	const array<double, 2>& dtBounds = {.01,.1},
-	const array<size_t, 2>& richLevelBounds = {4,8},
-	const array<size_t, 3>& problemSpecifics = {false,false,false},
+OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,false,false,false,false },
+	const array<double, 2>& errorBounds = { .0001,.001 },
+	const array<double, 2>& dtBounds = { .01,.1 },
+	const array<size_t, 2>& richLevelBounds = { 4,8 },
+	const array<size_t, 3>& problemSpecifics = { false,false,false },
 	const double& reductionFactorIn = 2.) :
 	useEuler(allowedMethods[0]),
 	useRK2(allowedMethods[1]),
@@ -93,7 +96,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = {true,fa
 	redutionFactor(reductionFactorIn),
 	isDtClamped(false),
 	satifiesError(true),
-	c(-1.0)
+	c(-1.0),
+	lastRun(false)
 {
 	//If the inputs are invalid we do no want to continue
 	if (!checkUserInputs())
@@ -159,6 +163,7 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	isDtClamped = params.isDtClamped;
 	satifiesError = params.satifiesError;
 	c = params.c;
+	lastRun = params.lastRun;
 
 	//Return this
 	return *this;

@@ -142,8 +142,8 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned 
 	//Set our inital convergence criterial the the theoretical local truncation error 
 	currentMethodParams.c = currentMethod->getErrorOrder() + static_cast<double>(currentMethodParams.minTableSize);
 
-	//Set the currentError to a default value
-	currentMethodParams.currentError = 99999.;
+	//Set our current error
+	currentMethodParams.currentError = 1.0;
 
 	//Update dt with our convergence criteria
 	updateDt(currentMethodParams, true, beginTime, endTime);
@@ -153,8 +153,6 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned 
 
 	//initalize our current starting table size to the min table size
 	currentMethodParams.currentTableSize = generalParams.minTableSize;
-
-	int counter = 0;
 
 	//Run each result several times
 	do
@@ -200,7 +198,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	const double& currentError = currentParams.currentError;
 
 	//Check to see if we are less than the greatest allowed error to show convergence
-	if (currentError <= currentParams.upperError)
+	if (currentError <= currentParams.upperError || currentParams.lastRun)
 	{
 		//We coverged to error we wanted
 		currentParams.satifiesError = true;
@@ -235,14 +233,19 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Get our desired upper error
 		const double& desiredErrorRight = currentParams.upperError;
 
+		double leftDtUpgrade = 0.0;
+		double rightDtUpgrade = 0.0;
+
 		//Get our dt for lower desired error
-		double leftDt = pow(desiredErrorLeft / funcDerv, 1. / c);
+		leftDtUpgrade = pow(desiredErrorLeft / (currentError * funcDerv), 1. / c);
 
 		//Get our dt for upper desired error
-		double rightDt = pow(desiredErrorRight / funcDerv, 1. / c);
+		rightDtUpgrade = pow(desiredErrorRight / (currentError * funcDerv), 1. / c);
 
 		//Get a dt for the middile
-		dt = (rightDt + leftDt) / 2.;
+		double dtLeft = leftDtUpgrade;
+		double dtRight = rightDtUpgrade;
+		dt *= dtRight;// (dtLeft + dtRight) / 2.0;
 
 		//Reset dt if it gets too small (the program would never finish)
 		if (!isfinite(dt) && !firstPassThrough)
@@ -279,9 +282,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		}
 
 		//Clamp dt if near the end
-		if (false)//currentParams.dt + beginTime > endTime)
+		if (currentParams.dt + beginTime > endTime)
 		{
 			currentParams.dt = endTime - beginTime;
+			currentParams.lastRun = true;
 		}
 		else
 		{
@@ -321,7 +325,7 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	methodMap& allowedMethods = methods->getMethodMap();
 
 	//Clear out our threads from the previous run (will be added later)
-	richardsonThreads.clear();
+	methodThreads.clear();
 
 	//Iterate over all the methods
 	for (methodMap::iterator methodItr = allowedMethods.begin(); methodItr != allowedMethods.end(); ++methodItr)
@@ -334,6 +338,9 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 
 		//Get this methods dt
 		double& dt = params.find(methodItr->first)->second.dt;
+
+		//Set dt to an inital guess
+		dt = params.find(methodItr->first)->second.maxDt;
 
 		while (currentTime <= endTime)
 		{

@@ -50,7 +50,7 @@ private:
 	results resultMap;
 
 	//vector to store threads
-	threadVector richardsonThreads;
+	threadVector methodThreads;
 
 	//Are all the methods explict
 	bool isAllExplict() const;

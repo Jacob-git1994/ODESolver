@@ -54,12 +54,12 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = .00009;
-	params.lowerError = .000001;
+	params.upperError = .0009;
+	params.lowerError = .00001;
 	params.redutionFactor = 2.;
 	params.dt = .01;
-	params.minDt = .000009;
-	params.maxDt = .00001;
+	params.minDt = .0009;
+	params.maxDt = .001;
 	params.minTableSize = 2;
 	params.maxTableSize = 4;
 
