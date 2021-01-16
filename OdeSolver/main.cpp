@@ -29,7 +29,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
-	state[0] = std::exp(currentTime);//std::cos(currentTime);
+	state[0] = std::exp(currentTime); //std::cos(currentTime);
 
 	return state;
 }
@@ -54,13 +54,13 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = .0009;
+	params.upperError = 1e-12;
 	params.redutionFactor = 2.;
 	params.dt = .1;
-	params.minDt = .5;
+	params.minDt = .25;
 	params.maxDt = 2.;
-	params.minTableSize = 4;
-	params.maxTableSize = 6;
+	params.minTableSize = 2;
+	params.maxTableSize = 3;
 
 	OdeSolver solver(params);
 		

@@ -73,7 +73,7 @@ double Richardson::normedError() const
 	}
 
 	//Return the sqrt of the norm
-	if (false) //(isfinite(normResult))
+	if (false) //isfinite(normResult))
 	{
 		return sqrt(normVal) / sqrt(normResult);
 	}

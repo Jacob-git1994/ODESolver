@@ -171,8 +171,6 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned 
 		//Update the results with the new error
 		currentMethodParams.currentError = currentTable.error(newState, currentMethodParams.c, currentMethod->getErrorOrder());
 
-		//std::cout << currentMethodParams.c << "\n";
-
 		//Build more tables if the error is greater then the greatest error
 	} while (updateDt(currentMethodParams, false, beginTime, endTime));// && currentMethodParams.currentTableSize++ < currentMethodParams.maxTableSize);
 
@@ -220,8 +218,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Set the current table size
 		currentParams.currentTableSize = currentParams.minTableSize;
 	}
+	//We have converged
 	else if (!firstPassThrough && currentError <= desiredError && !currentParams.lastRun)
 	{
+		//Break our loop
 		return false;
 	}
 	//We did not converge to desired solution
@@ -231,7 +231,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		funcDerv = currentError / pow(dt, covergenceEstimate);
 
 		//Get an estimate on how much we want to increase dt
-		double desiredUpgrade = pow(desiredError / (funcDerv * currentError), 1. / covergenceEstimate);
+		desiredUpgrade = pow(desiredError / (funcDerv * currentError), 1. / covergenceEstimate);
 		desiredUpgrade = std::max(desiredUpgrade, 1.0 / currentParams.redutionFactor);
 		desiredUpgrade = std::min(desiredUpgrade, maxDtUpgrade);
 
@@ -295,7 +295,7 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 		}
 	}
 
-	std::cout << methods.get()->findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
+	std::cout << setprecision(15) << methods.get()->findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
 	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::EULER).error() << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentRunTime << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.dt << "\n";

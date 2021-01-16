@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -27,6 +28,7 @@ using std::bad_alloc;
 using std::cerr;
 using std::pow;
 using std::thread;
+using std::setprecision;
 using paramMap = map<unsigned int, OdeSolverParams>;
 using resultNode = vector<StateVector>;
 using results = map<unsigned int, resultNode>;
