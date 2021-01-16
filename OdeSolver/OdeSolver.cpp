@@ -174,8 +174,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	const double& covergenceEstimate = currentParams.c;
 	const double& currentError = currentParams.currentError;
 	const double& desiredError = currentParams.upperError;
+	const double& lowestErrorAllowed = currentParams.lowerError;
 	const double& minDtUpgrade = currentParams.minDt;
-	const double& maxDtUpgrade = currentParams.minDt;
+	const double& maxDtUpgrade = currentParams.maxDt;
 	double funcDerv = 0.0;
 	double desiredUpgrade = 0.0;
 
@@ -201,8 +202,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Set the current table size
 		currentParams.currentTableSize = currentParams.minTableSize;
 	}
-	//We have converged (add upgrade check as well later but smaller step sizes is fine...)
-	else if (!firstPassThrough && currentError <= desiredError && !currentParams.lastRun)
+	//We have converged within desired error range
+	else if ((!firstPassThrough && currentError <= desiredError && currentError >= lowestErrorAllowed && !currentParams.lastRun) || (!isfinite(covergenceEstimate) || covergenceEstimate < 0.0))
 	{
 		//Break our loop
 		return false;
@@ -213,16 +214,27 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Set a guess for the derivative
 		funcDerv = currentError / pow(dt, covergenceEstimate);
 
-		//Get an estimate on how much we want to increase dt
+		//Get an estimate on how much we want to increase/decrease dt
 		desiredUpgrade = pow(desiredError / (funcDerv * currentError), 1. / covergenceEstimate);
-		desiredUpgrade = std::max(desiredUpgrade, 1.0 / currentParams.redutionFactor);
+		desiredUpgrade = std::max(desiredUpgrade, minDtUpgrade);
 		desiredUpgrade = std::min(desiredUpgrade, maxDtUpgrade);
 
 		//Update our dt
 		dt *= .9 * desiredUpgrade;
 
-		//Update the table size
-		currentParams.currentTableSize++;
+		//Check how we want to modify our table size
+		if (currentError < lowestErrorAllowed)
+		{
+			currentParams.currentTableSize--;
+		}
+		else if (currentError > desiredError)
+		{
+			currentParams.currentTableSize++;
+		}
+		else
+		{
+			//Do nothing here
+		}
 
 		//Check to ensure we clamp table size
 		if (currentParams.currentTableSize > currentParams.maxTableSize)
@@ -232,6 +244,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		else if (currentParams.currentTableSize < currentParams.minTableSize)
 		{
 			currentParams.currentTableSize = currentParams.minTableSize;
+		}
+		else
+		{
+			//Do nothing here
 		}
 
 		return true;

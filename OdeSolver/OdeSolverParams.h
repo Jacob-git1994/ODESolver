@@ -25,6 +25,7 @@ public:
 
 	//Error Bounds Allowed
 	double upperError;
+	double lowerError;
 	double currentError;
 	bool satifiesError;
 
@@ -80,6 +81,7 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	useImplictEuler(allowedMethods[3]),
 	useCrank(allowedMethods[4]),
 	upperError(errorBounds[1]),
+	lowerError(errorBounds[0]),
 	minDt(dtBounds[0]),
 	maxDt(dtBounds[1]),
 	minTableSize(richLevelBounds[0]),
@@ -146,6 +148,7 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	useCrank = params.useCrank;
 	upperError = params.upperError;
 	currentError = params.currentError;
+	lowerError = params.lowerError;
 	minDt = params.minDt;
 	maxDt = params.maxDt;
 	currentRunTime = params.currentRunTime;
