@@ -53,6 +53,9 @@ private:
 	//vector to store threads
 	threadVector methodThreads;
 
+	//Set up all our methods and tables
+	void setup();
+
 	//Build the richardson tables
 	void runMethod(const OdeFunIF*, unique_ptr<SolverIF>&, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
 
@@ -66,6 +69,9 @@ private:
 	const bool updateDt(OdeSolverParams&, const bool, const double, const double);
 
 public:
+
+	//Delete the default constructor
+	OdeSolver() = delete;
 
 	//Constructor
 	OdeSolver(const OdeSolverParams&);
@@ -87,5 +93,8 @@ public:
 
 	//Run our method
 	void run(OdeFunIF*, crvec,const double, const double, const unsigned int);
+
+	//Clear out our data for another run
+	void refreshParams(const OdeSolverParams&);
 };
 

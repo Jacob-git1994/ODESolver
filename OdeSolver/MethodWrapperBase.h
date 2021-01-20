@@ -90,4 +90,6 @@ public:
 	//Update all the methods vectors for new vector size
 	void updateAll(const vec&, const size_t, const double, const double);
 
+	//Clear out all the methods we used
+	void clearMethods();
 };

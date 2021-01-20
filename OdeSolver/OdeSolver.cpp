@@ -3,49 +3,13 @@
 OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 	generalParams(paramsIn)
 {
-	//Check the user inputs
-	if (!generalParams.checkUserInputs())
-	{
-		throw invalid_argument("Invalid Ode Parameters");
-		exit(-1);
-	}
-
-	//Build our allowed methods based on the parameter input
-	try
-	{
-		methods.initalize(generalParams); 
-	}
-	catch (exception& e)
-	{
-		cerr << e.what();
-		exit(-1);
-	}
-
-	//Get the methods allowed
-	const methodMap& allowedMethods = methods.getMethodMap();
-
-	//Check if no methods were created
-	if (allowedMethods.empty())
-	{
-		throw runtime_error("Method map is zero");
-		exit(-1);
-	}
-
-	//Iterate through the allowed methods to build the parameter tables
-	for (methodMap::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
-	{
-		//This is the ID/enum for the method
-		const unsigned int methodId = methodItr->first;
-
-		//Add the method id and parameters to our param map
-		params.emplace(methodId, paramsIn);
-	}
+	setup();
 }
 
 void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method, Richardson& tables, crvec initalCondition, rvec newState, const OdeSolverParams& currentParams, const double initalTime, const double newTime)
 {
 	//Loop over all the tables
-	for (int i = 0; i < tables.getTableSize(); ++i)
+	for (unsigned int i = 0; i < tables.getTableSize(); ++i)
 	{
 		//Update the tables
 		updateMethod(method, currentParams, tables, initalCondition, newState, currentParams.dt, initalTime, newTime, problem, i);
@@ -217,6 +181,12 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	//Get the method map
 	methodMap& allowedMethods = methods.getMethodMap();
 
+	//Check if we have avaiable methods
+	if (allowedMethods.size() == 0)
+	{
+		throw runtime_error("No Allowed Methods Available");
+	}
+
 	//Clear out our threads from the previous run (will be added later)
 	methodThreads.clear();
 
@@ -257,4 +227,66 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.dt << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentTableSize << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.c << "\n";
+}
+
+void OdeSolver::refreshParams(const OdeSolverParams& paramsIn)
+{
+	//Cleaar our methods
+	methods.clearMethods();
+
+	//Clear out our method parameters
+	params.clear();
+
+	//Clear out our results
+	resultMap.clear();
+
+	//Clear out our vector of threads
+	methodThreads.clear();
+
+	//ReInitaize our general parameters
+	generalParams = paramsIn;
+
+	//Set up everything again
+	setup();
+}
+
+void OdeSolver::setup()
+{
+	//Check the user inputs
+	if (!generalParams.checkUserInputs())
+	{
+		throw invalid_argument("Invalid Ode Parameters");
+		exit(-1);
+	}
+
+	//Build our allowed methods based on the parameter input
+	try
+	{
+		methods.initalize(generalParams);
+	}
+	catch (exception& e)
+	{
+		cerr << e.what();
+		exit(-1);
+	}
+
+	//Get the methods allowed
+	const methodMap& allowedMethods = methods.getMethodMap();
+
+	//Check if no methods were created
+	if (allowedMethods.empty())
+	{
+		throw runtime_error("Method map is zero");
+		exit(-1);
+	}
+
+	//Iterate through the allowed methods to build the parameter tables
+	for (methodMap::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
+	{
+		//This is the ID/enum for the method
+		const unsigned int methodId = methodItr->first;
+
+		//Add the method id and parameters to our param map
+		params.emplace(methodId, generalParams);
+	}
 }

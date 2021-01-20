@@ -9,12 +9,8 @@
 #include "SolverIF.h"
 
 //Some renaming for convience
-//using std::valarray;
-//using vec = valarray<double>;
 using vecValArray = valarray<vec>;
 using mat = valarray<vecValArray>;
-//using rvec = vec&;
-//using crvec = const rvec;
 using rmat = mat&;
 using crmat = const rmat;
 using std::exception;

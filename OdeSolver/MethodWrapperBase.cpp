@@ -110,8 +110,7 @@ void MethodWrapperBase::updateForRichardsonTables(const size_t tableSize, const 
 		Richardson& currentTable = richItr->second;
 
 		//Current vector size
-		size_t currentVectorSize = findMethod(static_cast<SolverIF::SOLVER_TYPES>(richItr->first)).get()->
-			getCurrentState().size();
+		size_t currentVectorSize = findMethod(static_cast<SolverIF::SOLVER_TYPES>(richItr->first))->getCurrentState().size();
 
 		//Initalize the current tables parameters
 		currentTable.initalizeSteps(reductionFactor, baseStepSize);
@@ -149,7 +148,7 @@ void MethodWrapperBase::buildSolvers(const OdeSolverParams& paramsIn)
 		getMethodMap().emplace(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR),
 			std::move(unique_ptr<SolverIF>(new RK4)));
 
-		//Exit running here
+		//Exit here
 		return;
 	}
 	//What methods do we want to use
@@ -171,4 +170,13 @@ void MethodWrapperBase::buildSolvers(const OdeSolverParams& paramsIn)
 				std::move(unique_ptr<SolverIF>(new RK4)));
 		}
 	}
+}
+
+void MethodWrapperBase::clearMethods()
+{
+	//Clear our methods
+	methods.clear();
+
+	//Clear our tables
+	tables.clear();
 }
