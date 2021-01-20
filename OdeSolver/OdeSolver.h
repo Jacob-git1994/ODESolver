@@ -86,7 +86,7 @@ public:
 	OdeSolver(OdeSolver&&) = default;
 
 	//Use the default move assigment constructor
-	OdeSolver& operator=(OdeSolver&&) = default;
+	OdeSolver& operator=(OdeSolver&&) = delete;
 
 	//Destructor using default
 	~OdeSolver() = default;

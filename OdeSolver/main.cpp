@@ -65,8 +65,9 @@ int main()
 	params.useRK4 = true;
 
 	OdeSolver solver(params);
+	OdeSolver solv2(std::move(solver));
 		
-	solver.run(testProblem, ic, 0.0, 1,1000);
+	solv2.run(testProblem, ic, 0.0, 1,1000);
 
 	delete testProblem;
 }
