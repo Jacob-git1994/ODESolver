@@ -29,7 +29,7 @@ public:
 	RK4(const RK4&) = delete;
 
 	//Default Destrutor
-	~RK4() = default;
+	virtual ~RK4() = default;
 
 	//Initalize the vector
 	virtual void initalize(crvec) override;

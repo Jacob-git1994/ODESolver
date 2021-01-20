@@ -65,6 +65,9 @@ public:
 	//Copy Constructor
 	inline OdeSolverParams(const OdeSolverParams&) = default;
 
+	//Default destructor
+	inline ~OdeSolverParams() = default;
+
 	//Assign Operator
 	inline const OdeSolverParams& operator=(const OdeSolverParams&);
 };

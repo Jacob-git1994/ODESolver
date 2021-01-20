@@ -44,10 +44,23 @@ OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 		{
 
 		}
-		//Case where we just want to build up all the fun methods
+		//Case where we just want to build up paticular methods
 		else
 		{
-			methods = unique_ptr<MethodWrapperIF>(new MethodWrapper);
+			//Build up the Euler methods
+			if (generalParams.useEuler && !(generalParams.useCrank || generalParams.useImplictEuler || generalParams.useRK2 || generalParams.useRK4))
+			{
+				methods = unique_ptr<MethodWrapperIF>(new MethodEuler);
+			}
+			//Build up the rk4 methods
+			else if (generalParams.useRK4 && !(generalParams.useCrank || generalParams.useImplictEuler || generalParams.useRK2 || generalParams.useEuler))
+			{
+				methods = unique_ptr<MethodWrapperIF>(new MethodRK4);
+			}
+			else if (generalParams.useRK4 && generalParams.useEuler && !(generalParams.useCrank || generalParams.useImplictEuler || generalParams.useRK2))
+			{
+				methods = unique_ptr<MethodWrapperIF>(new MethodEulerRK4);
+			}
 		}
 	}
 
@@ -301,10 +314,12 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentTableSize << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.c << "\n";
 
+	/*
 	std::cout << methods.get()->findMethod(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR)->getCurrentState()[0] << "\n";
 	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR).error() << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentRunTime << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.dt << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentTableSize << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.c << "\n";
+	*/
 }

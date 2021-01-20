@@ -11,7 +11,9 @@
 #include <thread>
 #include <vector>
 
-#include "MethodWrapper.h"
+#include "MethodEuler.h"
+#include "MethodEulerRK4.h"
+#include "MethodRK4.h"
 #include "MethodWrapperBase.h"
 #include "MethodWrapperIF.h"
 #include "OdeSolverParams.h"

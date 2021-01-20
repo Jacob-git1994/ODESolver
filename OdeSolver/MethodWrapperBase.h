@@ -3,8 +3,13 @@
 #include "MethodWrapperIF.h"
 
 //This class will set up the other types of method wrappers
-class MethodWrapperBase : public MethodWrapperIF
+class MethodWrapperBase : virtual public MethodWrapperIF
 {
+protected:
+
+	//Build up the solvers
+	virtual void buildSolvers() override;
+
 private:
 
 	//Our method map
@@ -13,13 +18,19 @@ private:
 	//Our table map
 	tableMap tables;
 
-	//Build up the solvers
-	virtual void buildSolvers() override;
-
 	//Build the tables
 	void buildTables();
 
 public:
+
+	//Using default constructor
+	MethodWrapperBase() = default;
+
+	//Delete the copy constructor
+	MethodWrapperBase(const MethodWrapperBase&) = delete;
+
+	//Default destructor
+	virtual ~MethodWrapperBase() = default;
 
 	//Initalize our method
 	virtual void initalize() override;

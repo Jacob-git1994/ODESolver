@@ -23,7 +23,7 @@ using std::invalid_argument;
 
 class MethodWrapperIF
 {
-private:
+protected:
 
 	//Build up the solvers
 	virtual void buildSolvers() = 0;

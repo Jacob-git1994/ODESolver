@@ -30,6 +30,15 @@ private:
 
 public:
 
+	//Default Constructor
+	SolverIF() = default;
+
+	//Delete the copy constructor
+	SolverIF(const SolverIF&) = delete;
+
+	//Use default deconstructor
+	virtual ~SolverIF() = default;
+
 	//Enumerations for the solver types
 	enum class SOLVER_TYPES
 	{

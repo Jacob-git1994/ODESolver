@@ -31,7 +31,7 @@ public:
 	Euler(const Euler&) = delete;
 
 	//Default Destrutor
-	~Euler() = default;
+	virtual ~Euler() = default;
 
 	//Initalize the vector
 	virtual void initalize(crvec) override;
