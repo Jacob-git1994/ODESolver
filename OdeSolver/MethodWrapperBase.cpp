@@ -83,11 +83,6 @@ const tableMap& MethodWrapperBase::getTableMap() const
 	return tables;
 }
 
-void MethodWrapperBase::buildSolvers()
-{
-	throw std::runtime_error("Base Method Wrapper does not support building solvers");
-}
-
 void MethodWrapperBase::buildTables()
 {
 	//Go through what methods we are using and add a table class to each one
@@ -97,10 +92,10 @@ void MethodWrapperBase::buildTables()
 	}
 }
 
-void MethodWrapperBase::initalize()
+void MethodWrapperBase::initalize(const OdeSolverParams& paramsIn)
 {
 	//Build the solvers
-	buildSolvers();
+	buildSolvers(paramsIn);
 
 	//Build the tables
 	buildTables();
@@ -133,4 +128,47 @@ void MethodWrapperBase::updateAll(const vec& state, const size_t tableSize, cons
 
 	//Update each richardson table
 	updateForRichardsonTables(tableSize, reductionFactor, baseStepSize);
+}
+
+//Build up our solvers
+void MethodWrapperBase::buildSolvers(const OdeSolverParams& paramsIn)
+{
+
+	//Check if our problem is stiff or large eigenvalues that might affect stability
+	if (paramsIn.isStiff || paramsIn.isFast)
+	{
+		//Add Implict Methods only
+		
+		//Exit here
+		return;
+	}
+	//Check problem is large computationally
+	else if (paramsIn.isLarge)
+	{
+		//Add RK4 method
+		getMethodMap().emplace(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR),
+			std::move(unique_ptr<SolverIF>(new RK4)));
+
+		//Exit running here
+		return;
+	}
+	//What methods do we want to use
+	else
+	{
+		//Add Euler Method
+		if (paramsIn.useEuler)
+		{
+			//Add Euler to our allowed methods
+			getMethodMap().emplace(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER),
+				std::move(unique_ptr<SolverIF>(new Euler)));
+		}
+
+		//Add RK4
+		if (paramsIn.useRK4)
+		{
+			//Add Runge Kutta 4 to our allowed methods
+			getMethodMap().emplace(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR),
+				std::move(unique_ptr<SolverIF>(new RK4)));
+		}
+	}
 }

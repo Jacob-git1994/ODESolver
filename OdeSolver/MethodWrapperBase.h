@@ -1,25 +1,44 @@
 #pragma once
 
-#include "MethodWrapperIF.h"
+#include <iostream>
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <valarray>
+
+#include "Euler.h"
+#include "Richardson.h"
+#include "RK4.h"
+#include "OdeSolverParams.h"
+
+//Using these to simplify typing
+using std::cerr;
+using std::map;
+using std::unique_ptr;
+using std::exception;
+using std::valarray;
+using vec = valarray<double>;
+using methodPtr = unique_ptr<SolverIF>;
+using methodMap = map<unsigned int, methodPtr>;
+using tableMap = map<unsigned int, Richardson>;
+using std::invalid_argument;
 
 //This class will set up the other types of method wrappers
-class MethodWrapperBase : virtual public MethodWrapperIF
+class MethodWrapperBase
 {
-protected:
+private:
 
 	//Build up the solvers
-	virtual void buildSolvers() override;
+	void buildSolvers(const OdeSolverParams&);
 
-private:
+	//Build the tables
+	void buildTables();
 
 	//Our method map
 	methodMap methods;
 
 	//Our table map
 	tableMap tables;
-
-	//Build the tables
-	void buildTables();
 
 public:
 
@@ -29,37 +48,46 @@ public:
 	//Delete the copy constructor
 	MethodWrapperBase(const MethodWrapperBase&) = delete;
 
+	//Delete the assignment operator
+	MethodWrapperBase& operator=(const MethodWrapperBase&) = delete;
+
+	//Using default move operator
+	MethodWrapperBase(MethodWrapperBase&&) = default;
+
+	//Using default assign move operator
+	MethodWrapperBase& operator=(MethodWrapperBase&&) = default;
+
 	//Default destructor
-	virtual ~MethodWrapperBase() = default;
+	~MethodWrapperBase() = default;
 
 	//Initalize our method
-	virtual void initalize() override;
+	void initalize(const OdeSolverParams&);
 
 	//Get a referance to the method map
-	virtual methodMap& getMethodMap() override;
+	methodMap& getMethodMap();
 
 	//Get a referance to the table map
-	virtual tableMap& getTableMap() override;
+	tableMap& getTableMap();
 
 	//Get a const referance to the method map
-	virtual const methodMap& getMethodMap() const override;
+	const methodMap& getMethodMap() const;
 
 	//Get a const referance to the table map
-	virtual const tableMap& getTableMap() const override;
+	const tableMap& getTableMap() const;
 
 	//Get the solver we want to use
-	virtual methodPtr& findMethod(SolverIF::SOLVER_TYPES) override;
+	methodPtr& findMethod(SolverIF::SOLVER_TYPES);
 
 	//Get pointer to tables
-	virtual Richardson& findTable(SolverIF::SOLVER_TYPES) override;
+	Richardson& findTable(SolverIF::SOLVER_TYPES);
 
 	//Update all the methods vectors for new vector size
-	virtual void updateForVectorSize(const vec&) override;
+	void updateForVectorSize(const vec&);
 
 	//Update all tables for the Richardson Table Sizes
-	virtual void updateForRichardsonTables(const size_t, const double, const double) override;
+	void updateForRichardsonTables(const size_t, const double, const double);
 
 	//Update all the methods vectors for new vector size
-	virtual void updateAll(const vec&, const size_t, const double, const double) override;
+	void updateAll(const vec&, const size_t, const double, const double);
 
 };

@@ -27,8 +27,11 @@ public:
 	//Default Constrcutor
 	Euler() = default;
 
-	//Delete Copy Constructor
-	Euler(const Euler&) = delete;
+	//DefaultCopy Constructor
+	Euler(const Euler&) = default;
+
+	//Default Assign operator
+	Euler& operator=(const Euler&) = default;
 
 	//Default Destrutor
 	virtual ~Euler() = default;

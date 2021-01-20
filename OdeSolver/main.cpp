@@ -1,7 +1,6 @@
 #include "Euler.h"
 #include "OdeFunIF.h"
 #include "SolverIF.h"
-#include "MethodWrapper.h"
 #include "Richardson.h"
 #include "OdeSolverParams.h"
 #include "OdeSolver.h"
@@ -54,7 +53,7 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-4;
+	params.upperError = 1e-10;
 	params.lowerError = 1e-11;
 	params.redutionFactor = 2.;
 	params.dt = .1;
@@ -62,10 +61,12 @@ int main()
 	params.maxDt = 2.;
 	params.minTableSize = 8;
 	params.maxTableSize = 15;
+	params.useEuler = false;
+	params.useRK4 = true;
 
 	OdeSolver solver(params);
 		
-	solver.run(testProblem, ic, 0.0, 5,1000);
+	solver.run(testProblem, ic, 0.0, 1,1000);
 
 	delete testProblem;
 }

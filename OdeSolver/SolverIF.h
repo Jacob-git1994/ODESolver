@@ -33,8 +33,11 @@ public:
 	//Default Constructor
 	SolverIF() = default;
 
-	//Delete the copy constructor
-	SolverIF(const SolverIF&) = delete;
+	//Using default copy constructor
+	SolverIF(const SolverIF&) = default;
+
+	//Using default assignment operator
+	SolverIF& operator=(const SolverIF&) = default;
 
 	//Use default deconstructor
 	virtual ~SolverIF() = default;

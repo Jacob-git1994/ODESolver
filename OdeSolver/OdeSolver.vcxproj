@@ -146,10 +146,6 @@
   <ItemGroup>
     <ClCompile Include="Euler.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MethodEuler.cpp" />
-    <ClCompile Include="MethodEulerRK4.cpp" />
-    <ClCompile Include="MethodRK4.cpp" />
-    <ClCompile Include="MethodWrapper.cpp" />
     <ClCompile Include="MethodWrapperBase.cpp" />
     <ClCompile Include="OdeSolver.cpp" />
     <ClCompile Include="Richardson.cpp" />
@@ -157,12 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Euler.h" />
-    <ClInclude Include="MethodEuler.h" />
-    <ClInclude Include="MethodEulerRK4.h" />
-    <ClInclude Include="MethodRK4.h" />
-    <ClInclude Include="MethodWrapper.h" />
     <ClInclude Include="MethodWrapperBase.h" />
-    <ClInclude Include="MethodWrapperIF.h" />
     <ClInclude Include="OdeFunIF.h" />
     <ClInclude Include="OdeSolver.h" />
     <ClInclude Include="OdeSolverParams.h" />

@@ -11,11 +11,7 @@
 #include <thread>
 #include <vector>
 
-#include "MethodEuler.h"
-#include "MethodEulerRK4.h"
-#include "MethodRK4.h"
 #include "MethodWrapperBase.h"
-#include "MethodWrapperIF.h"
 #include "OdeSolverParams.h"
 #include "OdeFunIF.h"
 #include "StateVector.h"
@@ -43,7 +39,7 @@ class OdeSolver
 private:
 
 	//Our methods
-	unique_ptr<MethodWrapperIF> methods;
+	MethodWrapperBase methods;
 
 	//Ode Params for all methods
 	OdeSolverParams generalParams;
@@ -56,12 +52,6 @@ private:
 
 	//vector to store threads
 	threadVector methodThreads;
-
-	//Are all the methods explict
-	bool isAllExplict() const;
-
-	//Are all the methods implict
-	bool isAllImplict() const;
 
 	//Build the richardson tables
 	void runMethod(const OdeFunIF*, unique_ptr<SolverIF>&, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
@@ -83,11 +73,14 @@ public:
 	//Delete the copy constructor
 	OdeSolver(const OdeSolver&) = delete;
 
-	//Delete the move operator
-	OdeSolver(OdeSolver&&) = delete;
+	//Delete the assignment operator
+	OdeSolver& operator=(const OdeSolver&) = delete;
 
-	//Delete the assigment operator
-	const OdeSolver& operator=(const OdeSolver&) = delete;
+	//Use the default move constructor
+	OdeSolver(OdeSolver&&) = default;
+
+	//Use the default move assigment constructor
+	OdeSolver& operator=(OdeSolver&&) = default;
 
 	//Destructor using default
 	~OdeSolver() = default;

@@ -29,9 +29,6 @@
     <ClCompile Include="Euler.cpp">
       <Filter>Methods</Filter>
     </ClCompile>
-    <ClCompile Include="MethodWrapper.cpp">
-      <Filter>Methods</Filter>
-    </ClCompile>
     <ClCompile Include="Richardson.cpp">
       <Filter>Richardson</Filter>
     </ClCompile>
@@ -44,15 +41,6 @@
     <ClCompile Include="RK4.cpp">
       <Filter>Methods</Filter>
     </ClCompile>
-    <ClCompile Include="MethodEuler.cpp">
-      <Filter>Methods</Filter>
-    </ClCompile>
-    <ClCompile Include="MethodRK4.cpp">
-      <Filter>Methods</Filter>
-    </ClCompile>
-    <ClCompile Include="MethodEulerRK4.cpp">
-      <Filter>Methods</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SolverIF.h">
@@ -63,12 +51,6 @@
     </ClInclude>
     <ClInclude Include="OdeFunIF.h">
       <Filter>OdeFun</Filter>
-    </ClInclude>
-    <ClInclude Include="MethodWrapperIF.h">
-      <Filter>Methods</Filter>
-    </ClInclude>
-    <ClInclude Include="MethodWrapper.h">
-      <Filter>Methods</Filter>
     </ClInclude>
     <ClInclude Include="Richardson.h">
       <Filter>Richardson</Filter>
@@ -86,15 +68,6 @@
       <Filter>OdeSolver</Filter>
     </ClInclude>
     <ClInclude Include="RK4.h">
-      <Filter>Methods</Filter>
-    </ClInclude>
-    <ClInclude Include="MethodEuler.h">
-      <Filter>Methods</Filter>
-    </ClInclude>
-    <ClInclude Include="MethodRK4.h">
-      <Filter>Methods</Filter>
-    </ClInclude>
-    <ClInclude Include="MethodEulerRK4.h">
       <Filter>Methods</Filter>
     </ClInclude>
   </ItemGroup>

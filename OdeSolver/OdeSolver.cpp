@@ -1,18 +1,7 @@
 #include "OdeSolver.h"
 
-bool OdeSolver::isAllExplict() const
-{
-	return generalParams.useEuler && generalParams.useRK2 && generalParams.useRK4;
-}
-
-bool OdeSolver::isAllImplict() const
-{
-	return generalParams.useCrank && generalParams.useImplictEuler;
-}
-
 OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
-	generalParams(paramsIn),
-	methods(nullptr)
+	generalParams(paramsIn)
 {
 	//Check the user inputs
 	if (!generalParams.checkUserInputs())
@@ -21,59 +10,10 @@ OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 		exit(-1);
 	}
 
-	//This section will build up what methods we want to attempt to use
-	//Case if all methods are explictly defined
-	if (isAllExplict() && !isAllImplict()) 
-	{
-		//We shouldn't get here...yet
-	}
-	//Case if all methiods are explictly defined
-	else if (isAllImplict() && !isAllExplict()) 
-	{
-		//we shouldn't get here...yet
-	}
-	else
-	{
-		//Use only explict methods
-		if (generalParams.isLarge || generalParams.isFast)
-		{
-			//we shouldnt get here yet
-		}
-		//Use only implict methods
-		else if (generalParams.isStiff)
-		{
-
-		}
-		//Case where we just want to build up paticular methods
-		else
-		{
-			//Build up the Euler methods
-			if (generalParams.useEuler && !(generalParams.useCrank || generalParams.useImplictEuler || generalParams.useRK2 || generalParams.useRK4))
-			{
-				methods = unique_ptr<MethodWrapperIF>(new MethodEuler);
-			}
-			//Build up the rk4 methods
-			else if (generalParams.useRK4 && !(generalParams.useCrank || generalParams.useImplictEuler || generalParams.useRK2 || generalParams.useEuler))
-			{
-				methods = unique_ptr<MethodWrapperIF>(new MethodRK4);
-			}
-			else if (generalParams.useRK4 && generalParams.useEuler && !(generalParams.useCrank || generalParams.useImplictEuler || generalParams.useRK2))
-			{
-				methods = unique_ptr<MethodWrapperIF>(new MethodEulerRK4);
-			}
-		}
-	}
-
-	//Check to see if methods was even allocated correctly
-	if (!methods)
-	{
-		throw bad_alloc();
-	}
-
-	//Initalize our methods
+	//Build our allowed methods based on the parameter input
 	try
 	{
-		methods->initalize();
+		methods.initalize(generalParams); 
 	}
 	catch (exception& e)
 	{
@@ -82,7 +22,7 @@ OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 	}
 
 	//Get the methods allowed
-	const methodMap& allowedMethods = methods.get()->getMethodMap();
+	const methodMap& allowedMethods = methods.getMethodMap();
 
 	//Check if no methods were created
 	if (allowedMethods.empty())
@@ -127,7 +67,7 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned 
 	OdeSolverParams& currentMethodParams = params.find(currentMethodId)->second;
 
 	//Get our richardson tables
-	Richardson& currentTable = methods.get()->getTableMap().find(currentMethodId)->second;
+	Richardson& currentTable = methods.getTableMap().find(currentMethodId)->second;
 
 	//Reset the satisfaction criteria
 	currentMethodParams.satifiesError = false;
@@ -193,6 +133,19 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	double funcDerv = 0.0;
 	double desiredUpgrade = 0.0;
 
+	//Reset dt if it would fall outside our bounds
+	if (dt + beginTime >= endTime && !currentParams.lastRun)
+	{
+		//Set dt to the remaining difference
+		dt = endTime - beginTime;
+
+		//Set the last run flag
+		currentParams.lastRun = true;
+
+		//Set the table size to max to try and get a good convergence
+		currentParams.currentTableSize = currentParams.maxTableSize;
+	}
+
 	//If this is first pass through we dont want to break
 	if (firstPassThrough && !currentParams.lastRun)
 	{
@@ -246,21 +199,6 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		{
 			//Do nothing here
 		}
-
-		//Reset dt if it would fall outside our bounds
-		if (dt + beginTime >= endTime && !currentParams.lastRun)
-		{
-			//Set dt to the remaining difference
-			dt = endTime - beginTime;
-
-			//Set the last run flag
-			currentParams.lastRun = true;
-
-			//Set the table size to max to try and get a good convergence
-			currentParams.currentTableSize = currentParams.maxTableSize;
-		}
-
-		return true;
 	}
 	//We ran the last time
 	else
@@ -274,10 +212,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime, const unsigned int nodes)
 {
 	//Initalize all the methods
-	methods.get()->updateAll(initalConditions, generalParams.minTableSize, generalParams.redutionFactor, generalParams.dt);
+	methods.updateAll(initalConditions, generalParams.minTableSize, generalParams.redutionFactor, generalParams.dt);
 
 	//Get the method map
-	methodMap& allowedMethods = methods->getMethodMap();
+	methodMap& allowedMethods = methods.getMethodMap();
 
 	//Clear out our threads from the previous run (will be added later)
 	methodThreads.clear();
@@ -304,19 +242,19 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 		}
 	}
 
-	std::cout << setprecision(15) << methods.get()->findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
-	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::EULER).error() << "\n";
+	/*
+	std::cout << setprecision(15) << methods.findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
+	std::cout << methods.findTable(SolverIF::SOLVER_TYPES::EULER).error() << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentRunTime << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.dt << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentTableSize << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.c << "\n";
+	*/
 
-	/*
-	std::cout << methods.get()->findMethod(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR)->getCurrentState()[0] << "\n";
-	std::cout << methods.get()->findTable(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR).error() << "\n";
+	std::cout << setprecision(15) << methods.findMethod(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR)->getCurrentState()[0] << "\n";
+	std::cout << methods.findTable(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR).error() << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentRunTime << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.dt << "\n";
 	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentTableSize << "\n";
 	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.c << "\n";
-	*/
 }

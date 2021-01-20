@@ -29,6 +29,9 @@ class Richardson
 {
 private:
 
+	//Calculate the vector norm
+	double normedError() const;
+
 	//Our Result Matrix
 	mat result;
 
@@ -43,9 +46,6 @@ private:
 
 	//Our table size
 	unsigned int N;
-
-	//Calculate the vector norm
-	double normedError() const;
 
 	//Flag to check if tables are built
 	bool isBuilt;

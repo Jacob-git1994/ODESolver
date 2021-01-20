@@ -25,8 +25,11 @@ public:
 	//Default Constrcutor
 	RK4() = default;
 
-	//Delete Copy Constructor
-	RK4(const RK4&) = delete;
+	//Default Copy Constructor
+	RK4(const RK4&) = default;
+
+	//Default Assign operator
+	RK4& operator=(const RK4&) = default;
 
 	//Default Destrutor
 	virtual ~RK4() = default;
