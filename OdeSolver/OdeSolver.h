@@ -38,13 +38,13 @@ class OdeSolver
 {
 private:
 
-	//Our methods
+	/// Holds all the allowed methods and their functions
 	MethodWrapperBase methods;
 
 	//Ode Params for all methods
 	OdeSolverParams generalParams;
 
-	//Map of params to mathods
+	//Map of params to methods
 	paramMap params;
 
 	//Map of results in the form of nodes
@@ -60,7 +60,17 @@ private:
 	void runMethod(const OdeFunIF*, unique_ptr<SolverIF>&, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
 
 	//Once the best parameters are founds we can start solving for the next time step
-	vec buildSolution(unique_ptr<SolverIF>&, const unsigned int, crvec, const OdeFunIF*, const double, const double);
+	vec buildSolution(unique_ptr<SolverIF>&, const unsigned int, Richardson&, OdeSolverParams&, crvec, const OdeFunIF*, const double, const double);
+	
+	//Update the method to the next time step
+	void updateNextTimeStep(const unsigned int,
+		unique_ptr<SolverIF>&,
+		OdeSolverParams&,
+		Richardson&,
+		const double,
+		const double,
+		const valarray<double>&,
+		const OdeFunIF*);
 
 	//Update the tables
 	void updateMethod(unique_ptr<SolverIF>&, const OdeSolverParams&, Richardson&, crvec, rvec, const double, const double, const double, const OdeFunIF*, const int);

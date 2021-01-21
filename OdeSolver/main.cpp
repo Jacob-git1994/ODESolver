@@ -53,21 +53,22 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-10;
-	params.lowerError = 1e-11;
+	params.upperError = 1e-4;
+	params.lowerError = 1e-15;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .01;
 	params.maxDt = 2.;
 	params.minTableSize = 8;
 	params.maxTableSize = 15;
-	params.useEuler = false;
+	params.useEuler = true;
 	params.useRK4 = true;
 
 	OdeSolver solver(params);
 	OdeSolver solv2(std::move(solver));
+	solver.refreshParams(params);
 		
-	solv2.run(testProblem, ic, 0.0, 1,1000);
+	solver.run(testProblem, ic, 0.0, 1,1000);
 
 	delete testProblem;
 }
