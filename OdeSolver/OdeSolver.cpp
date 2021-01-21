@@ -36,7 +36,15 @@ void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams
 /// <param name="beginTime"></param>
 /// <param name="endTime"></param>
 /// <returns></returns>
-vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod,const unsigned int currentMethodId, Richardson& currentTable, OdeSolverParams& currentMethodParams, crvec initalCondition, const OdeFunIF* problem, const double beginTime, const double endTime)
+vec OdeSolver::buildSolution(
+	unique_ptr<SolverIF>& currentMethod,
+	const unsigned int currentMethodId, 
+	Richardson& currentTable, 
+	OdeSolverParams& currentMethodParams, 
+	crvec initalCondition, 
+	const OdeFunIF* problem, 
+	const double beginTime, 
+	const double endTime)
 {
 	//Reset the satisfaction criteria
 	currentMethodParams.satifiesError = false;
@@ -134,6 +142,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//We have converged within desired error range
 	else if ((!firstPassThrough && currentError <= desiredError && currentError >= lowestErrorAllowed && !currentParams.lastRun) || (!isfinite(covergenceEstimate) || covergenceEstimate < 0.0))
 	{
+		//Accumulate the error
+		currentParams.totalError += currentError;
+
 		//Break our loop
 		return false;
 	}
@@ -182,6 +193,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//We ran the last time
 	else
 	{
+		//Accumulate the error
+		currentParams.totalError += currentError;
+
 		return false;
 	}
 
@@ -247,21 +261,11 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 		}
 	}
 
-	std::cout << setprecision(15) << methods.findMethod(SolverIF::SOLVER_TYPES::EULER)->getCurrentState()[0] << "\n";
-	std::cout << methods.findTable(SolverIF::SOLVER_TYPES::EULER).error() << "\n";
-	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentRunTime << "\n";
-	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.dt << "\n";
-	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.currentTableSize << "\n";
-	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::EULER))->second.c << "\n";
-
-	
-	std::cout << setprecision(15) << methods.findMethod(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR)->getCurrentState()[0] << "\n";
-	std::cout << methods.findTable(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR).error() << "\n";
-	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentRunTime << "\n";
-	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.dt << "\n";
-	std::cout << "\n\n" << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.currentTableSize << "\n";
-	std::cout << this->params.find(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR))->second.c << "\n";
-	
+	//temp print our results
+	for (const auto& methodItr : methods.getMethodMap())
+	{
+		std::cout << setprecision(14) << methodItr.first << "\t" << methodItr.second->getCurrentState()[0] << "\t" << params.find(methodItr.first)->second.totalError << "\t" << params.find(methodItr.first)->second.currentRunTime << "\n";
+	}
 }
 
 /// <summary>

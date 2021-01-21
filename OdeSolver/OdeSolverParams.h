@@ -27,6 +27,7 @@ public:
 	double upperError;
 	double lowerError;
 	double currentError;
+	double totalError;
 	bool satifiesError;
 
 	//Allowed deleta time
@@ -100,7 +101,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	isDtClamped(false),
 	satifiesError(true),
 	c(-1.0),
-	lastRun(false)
+	lastRun(false),
+	totalError(0.0)
 {
 	//If the inputs are invalid we do no want to continue
 	if (!checkUserInputs())
@@ -167,6 +169,7 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	satifiesError = params.satifiesError;
 	c = params.c;
 	lastRun = params.lastRun;
+	totalError = params.totalError;
 
 	//Return this
 	return *this;

@@ -41,6 +41,9 @@
     <ClCompile Include="RK4.cpp">
       <Filter>Methods</Filter>
     </ClCompile>
+    <ClCompile Include="RK2.cpp">
+      <Filter>Methods</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SolverIF.h">
@@ -68,6 +71,9 @@
       <Filter>OdeSolver</Filter>
     </ClInclude>
     <ClInclude Include="RK4.h">
+      <Filter>Methods</Filter>
+    </ClInclude>
+    <ClInclude Include="RK2.h">
       <Filter>Methods</Filter>
     </ClInclude>
   </ItemGroup>

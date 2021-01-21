@@ -19,6 +19,7 @@ protected:
 	vec k1;
 
 private:
+
 	//Initalize solving vectors
 	virtual void initalizeSolverVectors() override;
 
@@ -27,7 +28,7 @@ public:
 	//Default Constrcutor
 	Euler() = default;
 
-	//DefaultCopy Constructor
+	//Default Copy Constructor
 	Euler(const Euler&) = default;
 
 	//Default Assign operator

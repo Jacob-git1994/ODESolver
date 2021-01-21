@@ -162,6 +162,13 @@ void MethodWrapperBase::buildSolvers(const OdeSolverParams& paramsIn)
 				std::move(unique_ptr<SolverIF>(new Euler)));
 		}
 
+		//Add RK2
+		if (paramsIn.useRK2)
+		{
+			getMethodMap().emplace(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_TWO),
+				std::move(unique_ptr<SolverIF>(new RK2)));
+		}
+
 		//Add RK4
 		if (paramsIn.useRK4)
 		{

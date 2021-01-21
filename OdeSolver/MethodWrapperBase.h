@@ -8,6 +8,7 @@
 
 #include "Euler.h"
 #include "Richardson.h"
+#include "RK2.h"
 #include "RK4.h"
 #include "OdeSolverParams.h"
 
@@ -49,10 +50,10 @@ public:
 	MethodWrapperBase(const MethodWrapperBase&) = delete;
 
 	//Delete the assignment operator
-	MethodWrapperBase& operator=(const MethodWrapperBase&) = delete;
+	MethodWrapperBase& operator=(const MethodWrapperBase&) noexcept = delete;
 
 	//Using default move operator
-	MethodWrapperBase(MethodWrapperBase&&) = default;
+	MethodWrapperBase(MethodWrapperBase&&) noexcept = default;
 
 	//Using default assign move operator
 	MethodWrapperBase& operator=(MethodWrapperBase&&) = default;

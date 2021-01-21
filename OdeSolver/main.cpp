@@ -28,7 +28,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
-	state[0] = std::exp(currentTime);
+	state[0] = 5.*currentState[0];
 
 	return state;
 }
@@ -53,19 +53,23 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-4;
-	params.lowerError = 1e-15;
+	params.upperError = 1e-7;
+	params.lowerError = 1e-8;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .01;
-	params.maxDt = 2.;
+	params.maxDt = 10.;
 	params.minTableSize = 8;
 	params.maxTableSize = 15;
 	params.useEuler = true;
 	params.useRK4 = true;
+	params.useRK2 = true;
 
 	OdeSolver solver(params);
-	OdeSolver solv2(std::move(solver));
+	OdeSolver solv2;
+
+	solv2 = std::move(params);
+
 	solver.refreshParams(params);
 		
 	solver.run(testProblem, ic, 0.0, 1,1000);

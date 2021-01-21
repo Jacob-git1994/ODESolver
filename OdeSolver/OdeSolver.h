@@ -81,7 +81,7 @@ private:
 public:
 
 	//Delete the default constructor
-	OdeSolver() = delete;
+	OdeSolver() = default;
 
 	//Constructor
 	OdeSolver(const OdeSolverParams&);
@@ -93,10 +93,10 @@ public:
 	OdeSolver& operator=(const OdeSolver&) = delete;
 
 	//Use the default move constructor
-	OdeSolver(OdeSolver&&) = default;
+	OdeSolver(OdeSolver&&) noexcept = default;
 
 	//Use the default move assigment constructor
-	OdeSolver& operator=(OdeSolver&&) = delete;
+	OdeSolver& operator=(OdeSolver&&) = default;
 
 	//Destructor using default
 	~OdeSolver() = default;

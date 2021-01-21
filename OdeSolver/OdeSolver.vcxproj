@@ -149,6 +149,7 @@
     <ClCompile Include="MethodWrapperBase.cpp" />
     <ClCompile Include="OdeSolver.cpp" />
     <ClCompile Include="Richardson.cpp" />
+    <ClCompile Include="RK2.cpp" />
     <ClCompile Include="RK4.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,6 +159,7 @@
     <ClInclude Include="OdeSolver.h" />
     <ClInclude Include="OdeSolverParams.h" />
     <ClInclude Include="Richardson.h" />
+    <ClInclude Include="RK2.h" />
     <ClInclude Include="RK4.h" />
     <ClInclude Include="SolverIF.h" />
     <ClInclude Include="StateVector.h" />

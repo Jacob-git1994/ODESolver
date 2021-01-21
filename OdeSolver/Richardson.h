@@ -32,19 +32,19 @@ private:
 	mat result;
 
 	//The current error vector calculation
-	double currentNormError;
+	double currentNormError = 0.0;
 
 	//Our reduction factor of the step size
-	double reductionFactor;
+	double reductionFactor = 0.0;
 
 	//Our current step size
-	double stepSize;
+	double stepSize = 0;
 
 	//Our table size
-	unsigned int N;
+	unsigned int N = 0;
 
 	//Flag to check if tables are built
-	bool isBuilt;
+	bool isBuilt = false;
 
 public:
 
