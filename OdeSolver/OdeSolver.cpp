@@ -196,6 +196,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Accumulate the error
 		currentParams.totalError += currentError;
 
+		//Stop the iterations
 		return false;
 	}
 
