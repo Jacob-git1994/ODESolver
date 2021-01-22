@@ -61,7 +61,7 @@ int main()
 	params.maxDt = 10.;
 	params.minTableSize = 8;
 	params.maxTableSize = 15;
-	params.useEuler = true;
+	params.useEuler = false;
 	params.useRK4 = true;
 	params.useRK2 = true;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OdeSolverParams.h"
+
 #include <valarray>
 
 using std::valarray;
@@ -9,76 +11,44 @@ class StateVector
 {
 private:
 
-	//Our states current time
-	double currentTime;
-
-	//Our current error for the result
-	double currentError;
-
 	//Our state vector for the current time
 	vec currentState;
+
+	//Current params associated with the current state
+	OdeSolverParams currentParams;
 
 public:
 
 	//Constructor
-	inline StateVector(const double, const double, const vec);
+	inline StateVector(const valarray<double>&, const OdeSolverParams&);
 
-	//Copy Constructor
-	inline StateVector(const StateVector&);
+	//Using default Copy Constructor
+	inline StateVector(const StateVector&) = default;
 
-	//Assign operator
-	inline const StateVector& operator=(const StateVector&);
+	//Using default Move Constructor
+	inline StateVector(StateVector&&) = default;
 
-	//Delete operator using default args
+	//Default Assign operator
+	inline StateVector& operator=(const StateVector&) = default;
+
+	//Default Move Assign Operator
+	inline StateVector& operator=(StateVector&&) = default;
+
+	//Default Delete operator
 	inline ~StateVector() = default;
 
 	//Get the state
-	inline const vec& getState() const;
-
-	//Get the time
-	inline const double& getTime() const;
-
-	//Get the error
-	inline const double& getError() const;
+	inline const vec& getState() const { return currentState; };
+	
+	//Get the parameters
+	inline const OdeSolverParams& getParams() const { return currentParams; };
 
 };
 
-StateVector::StateVector(const double time, const double error, const vec state) :
-	currentTime(time),
-	currentState(state),
-	currentError(error)
+StateVector::StateVector(const valarray<double>& currentStateIn, const OdeSolverParams& currentParamsIn) :
+	currentState(currentStateIn),
+	currentParams(currentParamsIn)
 {
 	//Nothing else to do here
 }
 
-StateVector::StateVector(const StateVector& state) :
-	currentTime(state.currentTime),
-	currentState(state.currentState),
-	currentError(state.currentError)
-{
-	//Nothing else to do here
-}
-
-const StateVector& StateVector::operator=(const StateVector& state)
-{
-	currentTime = state.currentTime;
-	currentState = state.currentState;
-	currentError = state.currentError;
-
-	return *this;
-}
-
-const vec& StateVector::getState() const
-{
-	return currentState;
-}
-
-const double& StateVector::getTime() const
-{
-	return currentTime;
-}
-
-const double& StateVector::getError() const
-{
-	return currentError;
-}

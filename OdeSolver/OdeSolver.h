@@ -48,7 +48,7 @@ private:
 	paramMap params;
 
 	//Map of results in the form of nodes
-	results resultMap;
+	map<unsigned int, vector<StateVector>> resultMap;
 
 	//vector to store threads
 	threadVector methodThreads;
