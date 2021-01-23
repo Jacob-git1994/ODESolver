@@ -28,7 +28,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
-	state[0] = 5.*currentState[0];
+	state[0] = currentState[0];
 
 	return state;
 }
@@ -53,17 +53,17 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-8;
-	params.lowerError = 1e-9;
+	params.upperError = 1e-4;
+	params.lowerError = 1e-5;
 	params.redutionFactor = 2.;
-	params.dt = .1;
+	params.dt = .01;
 	params.minDt = .01;
 	params.maxDt = 10.;
 	params.minTableSize = 8;
 	params.maxTableSize = 15;
 	params.useEuler = false;
 	params.useRK4 = true;
-	params.useRK2 = true;
+	params.useRK2 = false;
 
 	OdeSolver solver(params);
 	OdeSolver solv2;
@@ -74,7 +74,7 @@ int main()
 		
 	solver.run(testProblem, ic, 0.0, 1,1000);
 
-	std::cout << solver.getResults(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR).back().getState()[0] << "\n";
+	std::cout << solver.getStateAndTime(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR, 1).getState()[0] << "\t" << solver.getStateAndTime(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR, 1).getParams().totalError << "\n";
 
 	delete testProblem;
 }

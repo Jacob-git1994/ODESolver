@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <iomanip>
@@ -7,7 +8,6 @@
 #include <limits>
 #include <map>
 #include <memory>
-#include <numeric>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -29,7 +29,6 @@ using std::cerr;
 using std::pow;
 using std::thread;
 using std::setprecision;
-using std::numeric_limits;
 using paramMap = map<unsigned int, OdeSolverParams>;
 using resultNode = vector<StateVector>;
 using results = map<unsigned int, resultNode>;
@@ -117,7 +116,10 @@ public:
 	//Get the results with an unsigned int if the enums are known
 	const vector<StateVector>& getResults(const unsigned int) const;
 
-	//Get the results with a certain time tag
-	const StateVector& getStateAndTime(SolverIF::SOLVER_TYPES, const double) const;
+	//Get the results with a paticular method and time
+	StateVector getStateAndTime(SolverIF::SOLVER_TYPES, const double) const;
+
+	//Get the results with a paticular method known enum value and time
+	StateVector getStateAndTime(const unsigned int, const double) const;
 };
 

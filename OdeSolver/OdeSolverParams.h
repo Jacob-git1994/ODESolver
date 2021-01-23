@@ -118,28 +118,17 @@ bool OdeSolverParams::checkUserInputs() const
 	//Initalize our arguments
 	bool goodArgs = true;
 
-	//Make sure the error inputs are valid
-	if (!(upperError > 0 && isfinite(upperError)))
-	{
-		goodArgs = false;
-	}
+	//Make sure the errors are valid
+	goodArgs &= (upperError > 0 && isfinite(upperError) && (lowerError < upperError) && isfinite(lowerError) && (lowerError > 0.0));
 
 	//Make sure the table arguments are valid
-	if (!(minTableSize > 1 and maxTableSize > 2 && minTableSize < maxTableSize))
-	{
-		goodArgs = false;
-	}
+	goodArgs &= (minTableSize > 1 and maxTableSize > 2 && minTableSize < maxTableSize);
 
-	//Make sure the run times are valid
-	if (!((minDt > 0. && isfinite(minDt) && minDt < maxDt) && (maxDt > 0 && isfinite(maxDt) && maxDt > minDt)))
-	{
-		goodArgs = false;
-	}
+	//Make sure dt upgrade and downgrade limits are valid
+	goodArgs &= ((minDt > 0. && isfinite(minDt) && minDt < maxDt) && (maxDt > 0 && isfinite(maxDt) && maxDt > minDt));
 
-	if (!(redutionFactor > 1))
-	{
-		goodArgs = false;
-	}
+	//Make sure we have a valid reduction factor
+	goodArgs &= (redutionFactor > 1);
 
 	//Return if the arguments are valid
 	return goodArgs;

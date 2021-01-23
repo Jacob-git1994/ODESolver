@@ -232,7 +232,7 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 	}
 	else
 	{
-		//Clear out our threads from the previous run (will be added later)
+		//Clear out our threads from the previous run
 		methodThreads.clear();
 
 		//Iterate over all the methods
@@ -271,14 +271,6 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 			threadItr->join();
 		}
 	}
-
-	/*
-	//temp print our results
-	for (const auto& methodItr : methods.getMethodMap())
-	{
-		std::cout << setprecision(14) << resultMap.find(methodItr.first)->second.back().getState()[0] << "\t" << resultMap.find(methodItr.first)->second.back().getParams().currentTime << "\t" << resultMap.find(methodItr.first)->second.back().getParams().totalError << "\n";
-	}
-	*/
 }
 
 /// <summary>
@@ -343,7 +335,7 @@ const vector<StateVector>& OdeSolver::getResults(const unsigned int methodId) co
 }
 
 //Get the interpolated State at a given time
-const StateVector& OdeSolver::getStateAndTime(SolverIF::SOLVER_TYPES methodType, const double time) const
+StateVector OdeSolver::getStateAndTime(SolverIF::SOLVER_TYPES methodType, const double time) const
 {
 	//Get the method id
 	unsigned int methodId = static_cast<unsigned int>(methodType);
@@ -362,13 +354,175 @@ const StateVector& OdeSolver::getStateAndTime(SolverIF::SOLVER_TYPES methodType,
 		//Get a handle to our current results
 		const vector<StateVector>& currentResults = currentMethod->second;
 
-		//This will be the lower time we want to pass
-		double lowerTimeTol = -numeric_limits<double>::infinity();
-		double upperTimeTol = numeric_limits<double>::infinity();
+		//Check if we need to clamp our results if a time is outside our bounds
+		if (currentResults.back().getParams().currentTime <= time)
+		{
+			return StateVector(currentResults.back().getState(), currentResults.back().getParams());
+		}
+		else if (currentResults.at(0).getParams().currentTime >= time)
+		{
+			return StateVector(currentResults.at(0).getState(), currentResults.at(0).getParams());
+		}
+		//We do not need to clamp and need to interpolate the result
+		else
+		{
+			//Find the place after after the reqested time
+			vector<StateVector>::const_iterator beforePassResult = std::find_if(currentResults.cbegin(), currentResults.cend(), [&time](const StateVector& s) {return s.getParams().currentTime > time; });
 
-		//Iterate through the results
+			//Find the place before after the reqested time
+			vector<StateVector>::const_reverse_iterator afterPassResult = std::find_if(currentResults.crbegin(), currentResults.crend(), [&time](const StateVector& s) {return s.getParams().currentTime <= time; });
+
+			//Check if we can find our current result
+			if (afterPassResult == currentResults.crend() || beforePassResult == currentResults.cend())
+			{
+				throw invalid_argument("Invalid Time given");
+			}
+			else
+			{
+				//Get each found iterators corresponding times
+				const double& leftTime = afterPassResult->getParams().currentTime;
+				const double& rightTime = beforePassResult->getParams().currentTime;
+
+				//Get each found iterators corresponding state
+				const valarray<double>& leftState = afterPassResult->getState();
+				const valarray<double>& rightState = beforePassResult->getState();
+
+				//Get the error found on the left and right
+				const double& leftError = afterPassResult->getParams().totalError;
+				const double& rightError = beforePassResult->getParams().totalError;
+
+				//Get the local truncation error
+				const double& leftTrunkError = afterPassResult->getParams().currentError;
+				const double& rightTrunkError = beforePassResult->getParams().currentError;
+
+				//Get the runtime
+				const double& leftRuntime = afterPassResult->getParams().currentRunTime;
+				const double& rightRuntime = beforePassResult->getParams().currentRunTime;
+
+				//Copy over the parameters found
+				OdeSolverParams tempParams = afterPassResult->getParams();
+
+				//Build the interpolated state
+				valarray<double> intpState = leftState * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightState * ((time - leftTime) / (rightTime - leftTime));
+
+				//Build the interpolated total error
+				tempParams.totalError = leftError * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightError * ((time - leftTime) / (rightTime - leftTime));
+
+				//Build the interpolated truncation error
+				tempParams.currentError = leftTrunkError * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightTrunkError * ((time - leftTime) / (rightTime - leftTime));
+
+				//Build the interpolated run time
+				tempParams.currentRunTime = leftRuntime * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightRuntime * ((time - leftTime) / (rightTime - leftTime));
+
+				//Update the params and our new state 
+				StateVector newState(std::move(intpState), std::move(tempParams));
+
+				//Return our result
+				return newState;
+			}
+		}
 	}
+}
 
+//NEED TO UPDATE FOR CHANGES ON OTHER METHOD
+StateVector OdeSolver::getStateAndTime(const unsigned int methodId, const double time) const
+{
+	//Get an iterator to the method
+	map<unsigned int, vector<StateVector>>::const_iterator currentMethod = resultMap.find(methodId);
+
+	//Check to see if the method exsits
+	if (currentMethod == resultMap.cend())
+	{
+		throw invalid_argument("Method Invalid");
+	}
+	//Start searching for the conditions
+	else
+	{
+		//Get a handle to our current results
+		const vector<StateVector>& currentResults = currentMethod->second;
+
+		//Check if we need to clamp our results if a time is outside our bounds
+		if (currentResults.back().getParams().currentTime <= time)
+		{
+			return StateVector(currentResults.back().getState(), currentResults.back().getParams());
+		}
+		else if (currentResults.at(0).getParams().currentTime >= time)
+		{
+			return StateVector(currentResults.at(0).getState(), currentResults.at(0).getParams());
+		}
+		//We do not need to clamp
+		else
+		{
+			//This is the iterator to hold the state vector before we pass
+			vector<StateVector>::const_iterator beforePassResult;
+
+			//This is the iterator to hold the state vector just after we pass
+			vector<StateVector>::const_reverse_iterator afterPassResult;
+
+			//Find the place after after the reqested time
+			beforePassResult = std::find_if(currentResults.cbegin(), currentResults.cend(), [&time](const StateVector& s) {return s.getParams().currentTime > time; });
+
+			//Find the place before after the reqested time
+			afterPassResult = std::find_if(currentResults.crbegin(), currentResults.crend(), [&time](const StateVector& s) {return s.getParams().currentTime <= time; });
+
+			//Check if we can find our current result
+			if (afterPassResult == currentResults.crend() || beforePassResult == currentResults.cend())
+			{
+				throw invalid_argument("Invalid Time given");
+			}
+			else
+			{
+				//Get each found iterators corresponding times
+				const double& leftTime = afterPassResult->getParams().currentTime;
+				const double& rightTime = beforePassResult->getParams().currentTime;
+
+				//Get each found iterators corresponding state
+				const valarray<double>& leftState = afterPassResult->getState();
+				const valarray<double>& rightState = beforePassResult->getState();
+
+				//Get the error found on the left and right
+				const double& leftError = afterPassResult->getParams().totalError;
+				const double& rightError = beforePassResult->getParams().totalError;
+
+				//Get the local truncation error
+				const double& leftTrunkError = afterPassResult->getParams().currentError;
+				const double& rightTrunkError = beforePassResult->getParams().currentError;
+
+				//Get the runtime
+				const double& leftRuntime = afterPassResult->getParams().currentRunTime;
+				const double& rightRuntime = beforePassResult->getParams().currentRunTime;
+
+				//Copy over the parameters found
+				OdeSolverParams tempParams = afterPassResult->getParams();
+
+				//Build the interpolated state
+				valarray<double> intpState = leftState * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightState * ((time - leftTime) / (rightTime - leftTime));
+
+				//Build the interpolated total error
+				tempParams.totalError = leftError * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightError * ((time - leftTime) / (rightTime - leftTime));
+
+				//Build the interpolated truncation error
+				tempParams.currentError = leftTrunkError * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightTrunkError * ((time - leftTime) / (rightTime - leftTime));
+
+				//Build the interpolated run time
+				tempParams.currentRunTime = leftRuntime * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
+					rightRuntime * ((time - leftTime) / (rightTime - leftTime));
+
+				//Update the params and our new state 
+				StateVector newState(std::move(intpState), std::move(tempParams));
+
+				//Return our result
+				return newState;
+			}
+		}
+	}
 }
 
 /// <summary>
