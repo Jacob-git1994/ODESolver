@@ -121,7 +121,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	double desiredUpgrade = 0.0;
 
 	//Reset dt if it would fall outside our bounds
-	if (dt + beginTime >= endTime && !currentParams.lastRun)
+	if (dt + beginTime >= endTime && !currentParams.lastRun && !firstPassThrough)
 	{
 		//Set dt to the remaining difference
 		dt = endTime - beginTime;
@@ -131,6 +131,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 
 		//Set the table size to max to try and get a good convergence
 		currentParams.currentTableSize = currentParams.maxTableSize;
+
+		//Run one more time
+		return true;
 	}
 
 	//If this is first pass through we dont want to break
