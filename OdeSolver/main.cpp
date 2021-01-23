@@ -53,8 +53,8 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-7;
-	params.lowerError = 1e-8;
+	params.upperError = 1e-8;
+	params.lowerError = 1e-9;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .01;
@@ -73,6 +73,8 @@ int main()
 	solver.refreshParams(params);
 		
 	solver.run(testProblem, ic, 0.0, 1,1000);
+
+	std::cout << solver.getResults(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR).back().getState()[0] << "\n";
 
 	delete testProblem;
 }

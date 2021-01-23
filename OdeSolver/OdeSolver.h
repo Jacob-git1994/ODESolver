@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <numeric>
@@ -28,6 +29,7 @@ using std::cerr;
 using std::pow;
 using std::thread;
 using std::setprecision;
+using std::numeric_limits;
 using paramMap = map<unsigned int, OdeSolverParams>;
 using resultNode = vector<StateVector>;
 using results = map<unsigned int, resultNode>;
@@ -63,14 +65,16 @@ private:
 	vec buildSolution(unique_ptr<SolverIF>&, const unsigned int, Richardson&, OdeSolverParams&, crvec, const OdeFunIF*, const double, const double);
 	
 	//Update the method to the next time step
-	void updateNextTimeStep(const unsigned int,
+	void updateNextTimeStep(
+		const unsigned int,
 		unique_ptr<SolverIF>&,
 		OdeSolverParams&,
 		Richardson&,
 		const double,
 		const double,
 		const valarray<double>&,
-		const OdeFunIF*);
+		const OdeFunIF*,
+		vector<StateVector>&);
 
 	//Update the tables
 	void updateMethod(unique_ptr<SolverIF>&, const OdeSolverParams&, Richardson&, crvec, rvec, const double, const double, const double, const OdeFunIF*, const int);
@@ -106,5 +110,14 @@ public:
 
 	//Clear out our data for another run
 	void refreshParams(const OdeSolverParams&);
+
+	//Get the results for a given type
+	const vector<StateVector>& getResults(SolverIF::SOLVER_TYPES) const;
+
+	//Get the results with an unsigned int if the enums are known
+	const vector<StateVector>& getResults(const unsigned int) const;
+
+	//Get the results with a certain time tag
+	const StateVector& getStateAndTime(SolverIF::SOLVER_TYPES, const double) const;
 };
 

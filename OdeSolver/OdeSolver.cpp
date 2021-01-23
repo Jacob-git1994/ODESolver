@@ -142,6 +142,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//We have converged within desired error range
 	else if ((!firstPassThrough && currentError <= desiredError && currentError >= lowestErrorAllowed && !currentParams.lastRun) || (!isfinite(covergenceEstimate) || covergenceEstimate < 0.0))
 	{
+		//Set the satified error flag
+		currentParams.satifiesError = true;
+
 		//Accumulate the error
 		currentParams.totalError += currentError;
 
@@ -193,6 +196,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//We ran the last time
 	else
 	{
+		//Check if we satisfied the error
+		currentParams.satifiesError = (currentError <= desiredError) && (currentError >= lowestErrorAllowed);
+
 		//Accumulate the error
 		currentParams.totalError += currentError;
 
@@ -241,6 +247,9 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 			//Get the current richardson parameters
 			Richardson& currentTables = methods.getTableMap().find(methodItr->first)->second;
 
+			//Get the current problems result map
+			vector<StateVector>& currentStateVector = resultMap.find(methodItr->first)->second;
+
 			//Put back the time iterations
 			methodThreads.push_back(std::move(thread(
 				&OdeSolver::updateNextTimeStep,
@@ -252,7 +261,8 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 				beginTime, 
 				endTime, 
 				initalConditions, 
-				std::cref(problem))));
+				std::cref(problem),
+				std::ref(currentStateVector))));
 		}
 
 		//Join all the threads to get the results
@@ -262,11 +272,13 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 		}
 	}
 
+	/*
 	//temp print our results
 	for (const auto& methodItr : methods.getMethodMap())
 	{
-		std::cout << setprecision(14) << methodItr.first << "\t" << methodItr.second->getCurrentState()[0] << "\t" << params.find(methodItr.first)->second.totalError << "\t" << params.find(methodItr.first)->second.currentRunTime << "\n";
+		std::cout << setprecision(14) << resultMap.find(methodItr.first)->second.back().getState()[0] << "\t" << resultMap.find(methodItr.first)->second.back().getParams().currentTime << "\t" << resultMap.find(methodItr.first)->second.back().getParams().totalError << "\n";
 	}
+	*/
 }
 
 /// <summary>
@@ -293,6 +305,70 @@ void OdeSolver::refreshParams(const OdeSolverParams& paramsIn)
 
 	//Set up everything again
 	setup();
+}
+
+//Result result vector of the method desired
+const vector<StateVector>& OdeSolver::getResults(SolverIF::SOLVER_TYPES methodType) const
+{
+	//Get the method Id
+	unsigned int methodId = static_cast<unsigned int>(methodType);
+
+	//Check if the method type being asked is in our map
+	map<unsigned int, vector<StateVector>>::const_iterator result = resultMap.find(methodId);
+
+	//If result is not found
+	if (result == resultMap.cend())
+	{
+		throw invalid_argument("Invalid Method");
+	}
+
+	//Return our vector
+	return result->second;
+}
+
+//Result result vector of the method desired
+const vector<StateVector>& OdeSolver::getResults(const unsigned int methodId) const
+{
+	//Check if the method type being asked is in our map
+	map<unsigned int, vector<StateVector>>::const_iterator result = resultMap.find(methodId);
+
+	//If result is not found
+	if (result == resultMap.cend())
+	{
+		throw invalid_argument("Invalid Method");
+	}
+
+	//Return our vector
+	return result->second;
+}
+
+//Get the interpolated State at a given time
+const StateVector& OdeSolver::getStateAndTime(SolverIF::SOLVER_TYPES methodType, const double time) const
+{
+	//Get the method id
+	unsigned int methodId = static_cast<unsigned int>(methodType);
+
+	//Get an iterator to the method
+	map<unsigned int, vector<StateVector>>::const_iterator currentMethod = resultMap.find(methodId);
+
+	//Check to see if the method exsits
+	if (currentMethod == resultMap.cend())
+	{
+		throw invalid_argument("Method Invalid");
+	}
+	//Start searching for the conditions
+	else
+	{
+		//Get a handle to our current results
+		const vector<StateVector>& currentResults = currentMethod->second;
+
+		//This will be the lower time we want to pass
+		double lowerTimeTol = -numeric_limits<double>::infinity();
+		double upperTimeTol = numeric_limits<double>::infinity();
+
+		//Iterate through the results
+	}
+
 }
 
 /// <summary>
@@ -328,7 +404,7 @@ void OdeSolver::setup()
 		exit(-1);
 	}
 
-	//Iterate through the allowed methods to build the parameter tables
+	//Iterate through the allowed methods to build the parameter tables and results table
 	for (methodMap::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
 	{
 		//This is the ID/enum for the method
@@ -336,6 +412,9 @@ void OdeSolver::setup()
 
 		//Add the method id and parameters to our param map
 		params.emplace(methodId, generalParams);
+
+		//set up our result map
+		resultMap.emplace(methodId, vector<StateVector>());
 	}
 }
 
@@ -358,7 +437,8 @@ void OdeSolver::updateNextTimeStep(
 	const double beginTime, 
 	const double endTime, 
 	const valarray<double>& initalConditions, 
-	const OdeFunIF* problem)
+	const OdeFunIF* problem,
+	vector<StateVector>& results)
 {
 	//Get this current methods dt
 	double& dt = currentParameters.dt;
@@ -369,6 +449,12 @@ void OdeSolver::updateNextTimeStep(
 	//Save our currentState
 	valarray<double> currentState = initalConditions;
 
+	//Add the current time to our parameters
+	currentParameters.currentTime = currentTime;
+
+	//Add the first result into results
+	results.push_back(std::move(StateVector(currentState, currentParameters)));
+
 	while (currentTime < endTime)
 	{
 		//Solver for the next time step for the current method
@@ -377,6 +463,19 @@ void OdeSolver::updateNextTimeStep(
 		//Update the time
 		currentTime += dt;
 
-		//In future I plan on adding each result to our solution map
+		//Add the new time to our parameters
+		currentParameters.currentTime = currentTime;
+
+		//Try to append the current results to our results map
+		try
+		{
+			//Push back the result
+			results.push_back(std::move(StateVector(currentState, currentParameters)));
+		}
+		catch (exception& e)
+		{
+			cerr << e.what();
+			exit(1);
+		}
 	}
 }
