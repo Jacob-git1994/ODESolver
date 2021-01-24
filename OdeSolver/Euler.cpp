@@ -1,6 +1,8 @@
 #include "Euler.h"
 
-//Initalize the Solving Vectors
+/// <summary>
+/// Initalize the vectors (k1,k2...) to be used to solve this system
+/// </summary>
 void Euler::initalizeSolverVectors()
 {
 	//Get the ref to current method
@@ -10,7 +12,10 @@ void Euler::initalizeSolverVectors()
 	currentMethod.k1.resize(currentMethod.getCurrentState().size());
 }
 
-//Initalize the vector
+/// <summary>
+/// Update the current state with the inital condition so we know the size and update the solving helper vectors (funcs evaled at different "future" times)
+/// </summary>
+/// <param name="initalCondition"></param>
 void Euler::initalize(crvec initalCondition)
 {
 	//Get the ref to current method
@@ -23,7 +28,16 @@ void Euler::initalize(crvec initalCondition)
 	currentMethod.initalizeSolverVectors();
 }
 
-//Update to the next time step
+/// <summary>
+/// Find the state vector at the next time step defined by the function derrivative vector
+/// </summary>
+/// <param name="previousState"></param>
+/// <param name="newState"></param>
+/// <param name="dt"></param>
+/// <param name="tBegin"></param>
+/// <param name="numOfSteps"></param>
+/// <param name="functionVector"></param>
+/// <returns></returns>
 rvec Euler::update(crvec			previousState,
 				   rvec				newState,
 				   const double&	dt,
@@ -57,6 +71,10 @@ rvec Euler::update(crvec			previousState,
 	return newState;
 }
 
+/// <summary>
+/// Get the leading error order
+/// </summary>
+/// <returns></returns>
 const double Euler::getErrorOrder() const
 {
 	return 2.;

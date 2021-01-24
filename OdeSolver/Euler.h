@@ -11,36 +11,37 @@ using vec = valarray<double>;
 using crvec = const vec&;
 using rvec = vec&;
 
+// Class derrived from the SolverIF to support the Euler time stepping scheme
 class Euler : public SolverIF
 {
 protected:
 
-	//Vector to hold the function vector
+	// Hold the functions derivative vector at the current time step. Used to "move" to current state vector in time
 	vec k1;
 
 private:
 
-	//Initalize solving vectors
+	// Update the vectors that are used to appoximate the function vectors derivative at other time steps
 	virtual void initalizeSolverVectors() override;
 
 public:
 
-	//Default Constrcutor
+	// Using default constructor
 	Euler() = default;
 
-	//Default Copy Constructor
+	// Using default copy constructor
 	Euler(const Euler&) = default;
 
-	//Default Assign operator
+	// Using default assignment operator
 	Euler& operator=(const Euler&) = default;
 
-	//Default Destrutor
+	// Using default destructor
 	virtual ~Euler() = default;
 
-	//Initalize the vector
+	// Initalize the current state vector and solving helper vectors
 	virtual void initalize(crvec) override;
 
-	//Get the next time step for rvec
+	/// Update the current vector's state to the next state based on the function vectors derivative
 	virtual rvec update(crvec,
 						rvec,
 						const double&,
@@ -48,7 +49,7 @@ public:
 						const int&,
 						const OdeFunIF*) override;
 
-	//Get the power of the error
+	/// Return the error order of the Euler method
 	virtual const double getErrorOrder() const override;
 };
 
