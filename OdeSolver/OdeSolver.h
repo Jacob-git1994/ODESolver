@@ -124,10 +124,16 @@ public:
 	//Get the results with an unsigned int if the enums are known
 	const vector<StateVector>& getResults(const unsigned int) const;
 
+	//Get the results of the best method
+	const vector<StateVector>& getResults() const;
+
 	//Get the results with a paticular method and time
 	StateVector getStateAndTime(SolverIF::SOLVER_TYPES, const double) const;
 
 	//Get the results with a paticular method known enum value and time
 	StateVector getStateAndTime(const unsigned int, const double) const;
+
+	//Find the best result and return the state vector interplation of that result
+	StateVector getStateAndTime(const double) const;
 };
 

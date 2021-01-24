@@ -1,11 +1,28 @@
 #include "OdeSolver.h"
 
+/// <summary>
+/// This constructor calls the set up method which builds up all our tables and maps to later be used when we decide to run.
+/// </summary>
+/// <param name="paramsIn"></param>
 OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 	generalParams(paramsIn)
 {
 	setup();
 }
 
+/// <summary>
+/// Here we build up the richardson tables by calling the method solver i number of times.
+/// Each ith run we divide up the stepsize by that much. 
+/// Update method will then append the result into the richardson tables after a result is found. 
+/// </summary>
+/// <param name="problem"></param>
+/// <param name="method"></param>
+/// <param name="tables"></param>
+/// <param name="initalCondition"></param>
+/// <param name="newState"></param>
+/// <param name="currentParams"></param>
+/// <param name="initalTime"></param>
+/// <param name="newTime"></param>
 void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method, Richardson& tables, crvec initalCondition, rvec newState, const OdeSolverParams& currentParams, const double initalTime, const double newTime)
 {
 	//Loop over all the tables
@@ -16,6 +33,21 @@ void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method,
 	}
 }
 
+/// <summary>
+/// Here we call each method with a desired number of runs to achive our best result. 
+/// We only care about updating the method, not the method its self. 
+/// After we solve the correct number of times desired we append the results into the richardson tables to be analized at the end. 
+/// </summary>
+/// <param name="method"></param>
+/// <param name="currentParams"></param>
+/// <param name="tables"></param>
+/// <param name="intialCondition"></param>
+/// <param name="newState"></param>
+/// <param name="dt"></param>
+/// <param name="initalTime"></param>
+/// <param name="newTime"></param>
+/// <param name="problem"></param>
+/// <param name="i"></param>
 void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams& currentParams, Richardson& tables, crvec intialCondition, rvec newState, const double dt, const double initalTime, const double newTime, const OdeFunIF* problem, const int i)
 {
 	//Solve for the next time step
@@ -213,7 +245,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 }
 
 /// <summary>
-/// This runs the core algorithem for each allowed method
+/// This runs the core alogirthm for all methods.
+/// We push back each method to run in parallel on each thread. 
 /// </summary>
 /// <param name="problem"></param>
 /// <param name="initalConditions"></param>
@@ -302,7 +335,12 @@ void OdeSolver::refreshParams(const OdeSolverParams& paramsIn)
 	setup();
 }
 
-//Result result vector of the method desired
+/// <summary>
+/// /// Return the results for a known enum Solver Type for the method. 
+/// We return the entire vector of solutions.
+/// </summary>
+/// <param name="methodType"></param>
+/// <returns></returns>
 const vector<StateVector>& OdeSolver::getResults(SolverIF::SOLVER_TYPES methodType) const
 {
 	//Get the method Id
@@ -321,7 +359,12 @@ const vector<StateVector>& OdeSolver::getResults(SolverIF::SOLVER_TYPES methodTy
 	return result->second;
 }
 
-//Result result vector of the method desired
+/// <summary>
+/// Return the results for a known enum value for the method. 
+/// We return the entire vector of solutions.
+/// </summary>
+/// <param name="methodId"></param>
+/// <returns></returns>
 const vector<StateVector>& OdeSolver::getResults(const unsigned int methodId) const
 {
 	//Check if the method type being asked is in our map
@@ -337,7 +380,44 @@ const vector<StateVector>& OdeSolver::getResults(const unsigned int methodId) co
 	return result->second;
 }
 
-//Get the interpolated State at a given time
+/// <summary>
+/// This method will find the "best" / lowest error method and return the vector of all results.
+/// </summary>
+/// <returns></returns>
+const vector<StateVector>& OdeSolver::getResults() const
+{
+	//check if we even ran any solvers
+	if (resultMap.empty())
+	{
+		throw runtime_error("No method's results saved");
+	}
+
+	//Find the best result (smallest error)
+	map<unsigned int, vector<StateVector>>::const_iterator bestResult = std::min_element(resultMap.cbegin(), resultMap.cend(),
+		[](const std::pair<unsigned int, vector<StateVector>>& leftMap, const std::pair<unsigned int, vector<StateVector>>& rightMap)
+		{
+			//Get the max total error at the end
+			return leftMap.second.back().getParams().totalError < rightMap.second.back().getParams().totalError;
+		});
+	
+	//Check to see if our results are valid
+	if (bestResult == resultMap.cend())
+	{
+		throw runtime_error("Method not found");
+	}
+
+	//Return our vector
+	return bestResult->second;
+}
+
+/// <summary>
+/// /// We take in the enum for the method solver type and a desired time we want to find the solution. 
+/// We clamp the results if out of bounds.
+/// If we want a desired time at a paticular time unsolved, we interpolate the results and build a new state vector.
+/// </summary>
+/// <param name="methodType"></param>
+/// <param name="time"></param>
+/// <returns></returns>
 StateVector OdeSolver::getStateAndTime(SolverIF::SOLVER_TYPES methodType, const double time) const
 {
 	//Get the method id
@@ -431,7 +511,14 @@ StateVector OdeSolver::getStateAndTime(SolverIF::SOLVER_TYPES methodType, const 
 	}
 }
 
-//NEED TO UPDATE FOR CHANGES ON OTHER METHOD
+/// <summary>
+/// We take in the enum value for the method id and a desired time we want to find the solution. 
+/// We clamp the results if out of bounds.
+/// If we want a desired time at a paticular time unsolved, we interpolate the results and build a new state vector.
+/// </summary>
+/// <param name="methodId"></param>
+/// <param name="time"></param>
+/// <returns></returns>
 StateVector OdeSolver::getStateAndTime(const unsigned int methodId, const double time) const
 {
 	//Get an iterator to the method
@@ -529,7 +616,43 @@ StateVector OdeSolver::getStateAndTime(const unsigned int methodId, const double
 }
 
 /// <summary>
-/// Build up all our maps for our methods
+/// Find the best solution and return that result
+/// </summary>
+/// <param name=""></param>
+/// <returns></returns>
+StateVector OdeSolver::getStateAndTime(const double time) const
+{
+	//check if we even ran any solvers
+	if (resultMap.empty())
+	{
+		throw runtime_error("No method's results saved");
+	}
+
+	//Find the best result (smallest error)
+	map<unsigned int, vector<StateVector>>::const_iterator bestResult = std::min_element(resultMap.cbegin(), resultMap.cend(), 
+		[](const std::pair<unsigned int, vector<StateVector>>& leftMap, const std::pair<unsigned int, vector<StateVector>>& rightMap)
+		{
+			//Get the max total error at the end
+			return leftMap.second.back().getParams().totalError < rightMap.second.back().getParams().totalError;
+		});
+
+	//Check to see if our results are valid
+	if (bestResult == resultMap.cend())
+	{
+		throw runtime_error("Method not found");
+	}
+
+	//Get the solver this type corresponds to
+	SolverIF::SOLVER_TYPES desiredSolver = static_cast<SolverIF::SOLVER_TYPES>(bestResult->first);
+
+	//Return the result
+	return getStateAndTime(desiredSolver, time);
+}
+
+/// <summary>
+/// Build up all our maps for our methods.
+/// If the params given make no sense we throw
+/// If no methods were built we throw an invalid argument error.
 /// </summary>
 void OdeSolver::setup()
 {
@@ -576,7 +699,9 @@ void OdeSolver::setup()
 }
 
 /// <summary>
-/// Build the current methods solution until the final time specified.
+/// We set up the time stepping scheme in order to build solutions to the desired time.
+/// It calls on methods to run each method and build up our tables.
+/// After each time step, we append the solution to our results vector.
 /// </summary>
 /// <param name="methodId"></param>
 /// <param name="currentMethod"></param>
@@ -586,6 +711,7 @@ void OdeSolver::setup()
 /// <param name="endTime"></param>
 /// <param name="initalConditions"></param>
 /// <param name="problem"></param>
+/// <param name="results"></param>
 void OdeSolver::updateNextTimeStep(
 	const unsigned int methodId, 
 	unique_ptr<SolverIF>& currentMethod, 

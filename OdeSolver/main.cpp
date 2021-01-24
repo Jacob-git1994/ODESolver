@@ -74,7 +74,7 @@ int main()
 		
 	solver.run(testProblem, ic, 0.0, 1,1000);
 
-	std::cout << solver.getStateAndTime(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR, 1).getState()[0] << "\t" << solver.getStateAndTime(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR, 1).getParams().totalError << "\n";
+	std::cout << solver.getStateAndTime(1).getState()[0] << "\t" << solver.getStateAndTime(1).getParams().totalError << "\n";
 
 	delete testProblem;
 }
