@@ -263,7 +263,7 @@ void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double begi
 				std::ref(currentTables),
 				beginTime, 
 				endTime, 
-				initalConditions, 
+				std::cref(initalConditions), 
 				std::cref(problem),
 				std::ref(currentStateVector))));
 		}
