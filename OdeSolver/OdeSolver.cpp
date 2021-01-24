@@ -485,6 +485,9 @@ StateVector OdeSolver::getStateAndTime(SolverIF::SOLVER_TYPES methodType, const 
 				//Copy over the parameters found
 				OdeSolverParams tempParams = afterPassResult->getParams();
 
+				//Copy over the desired time to our parameters
+				tempParams.currentTime = time;
+
 				//Build the interpolated state
 				valarray<double> intpState = leftState * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +
 					rightState * ((time - leftTime) / (rightTime - leftTime));
@@ -588,6 +591,9 @@ StateVector OdeSolver::getStateAndTime(const unsigned int methodId, const double
 
 				//Copy over the parameters found
 				OdeSolverParams tempParams = afterPassResult->getParams();
+
+				//Copy over the desired time to our parameters
+				tempParams.currentTime = time;
 
 				//Build the interpolated state
 				valarray<double> intpState = leftState * (1.0 - ((time - leftTime) / (rightTime - leftTime))) +

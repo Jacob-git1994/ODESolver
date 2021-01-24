@@ -53,17 +53,17 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-4;
-	params.lowerError = 1e-5;
+	params.upperError = 1e-10;
+	params.lowerError = 1e-11;
 	params.redutionFactor = 2.;
 	params.dt = .01;
 	params.minDt = .01;
 	params.maxDt = 10.;
 	params.minTableSize = 8;
 	params.maxTableSize = 15;
-	params.useEuler = true;
+	params.useEuler = false;
 	params.useRK4 = true;
-	params.useRK2 = true;
+	params.useRK2 = false;
 
 	OdeSolver solver(params);
 	OdeSolver solv2;
@@ -74,7 +74,14 @@ int main()
 		
 	solver.run(testProblem, ic, 0.0, 1,1000);
 
-	std::cout << solver.getStateAndTime(1).getState()[0] << "\t" << solver.getStateAndTime(1).getParams().totalError << "\n";
+	const unsigned int maxNodes = 10;
+	for (int i = 0; i <= maxNodes; ++i)
+	{
+		const double step = static_cast<double>(i) / static_cast<double>(maxNodes);
+		std::cout << solver.getStateAndTime(step).getParams().currentTime << "\t" << solver.getStateAndTime(step).getState()[0] << "\t" << solver.getStateAndTime(step).getParams().totalError << "\n";
+	}
+
+	//std::cout << solver.getStateAndTime(1).getState()[0] << "\t" << solver.getStateAndTime(1).getParams().totalError << "\n";
 
 	delete testProblem;
 }
