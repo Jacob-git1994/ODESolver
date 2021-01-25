@@ -59,11 +59,12 @@ int main()
 	params.dt = .01;
 	params.minDt = .01;
 	params.maxDt = 10.;
-	params.minTableSize = 8;
-	params.maxTableSize = 15;
-	params.useEuler = false;
+	params.minTableSize = 4;
+	params.maxTableSize = 8;
+	params.useEuler = true;
 	params.useRK4 = true;
-	params.useRK2 = false;
+	params.useRK2 = true;
+	params.smallestAllowableDt = 1e-4;
 
 	OdeSolver solver(params);
 	OdeSolver solv2;
@@ -72,13 +73,14 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 1);
+	solver.run(testProblem, ic, 0.0, 20);
 
 	const unsigned int maxNodes = 10;
 	for (int i = 0; i <= maxNodes; ++i)
 	{
-		const double step = static_cast<double>(i) / static_cast<double>(maxNodes);
-		std::cout << solver.getStateAndTime(step).getParams().currentTime << "\t" << solver.getStateAndTime(step).getState()[0] << "\t" << solver.getStateAndTime(step).getParams().totalError << "\n";
+		const double step = 5.*static_cast<double>(i) / static_cast<double>(maxNodes);
+		std::cout << solver.getStateAndTime(step).getParams().currentTime << "\t" << solver.getStateAndTime(step).getState()[0] << "\t" 
+			<< solver.getStateAndTime(step).getParams().totalError << "\t" <<  solver.getResults().size()  << "\n";
 	}
 
 	//std::cout << solver.getStateAndTime(1).getState()[0] << "\t" << solver.getStateAndTime(1).getParams().totalError << "\n";

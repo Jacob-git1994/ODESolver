@@ -171,8 +171,11 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//If this is first pass through we dont want to break
 	if (firstPassThrough && !currentParams.lastRun)
 	{
-		//Set the current table size
+		//Reset all our flags and table sizes
+		currentParams.lastRun = false;
+		currentParams.satifiesError = false;
 		currentParams.currentTableSize = currentParams.minTableSize;
+		currentParams.isDtClamped = false;
 	}
 	//We have converged within desired error range
 	else if ((!firstPassThrough && currentError <= desiredError && currentError >= lowestErrorAllowed && !currentParams.lastRun) || (!isfinite(covergenceEstimate) || covergenceEstimate < 0.0))
@@ -205,9 +208,37 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		{
 			currentParams.currentTableSize--;
 		}
-		else if (currentError > desiredError)
+		else if (currentError > desiredError || dt < currentParams.smallestAllowableDt)
 		{
 			currentParams.currentTableSize++;
+		}
+		else
+		{
+			//Do nothing here
+		}
+
+		//If dt is smaller than allowed value we want to clamp
+		if (dt < currentParams.smallestAllowableDt && currentParams.currentTableSize != currentParams.maxTableSize + 1)
+		{
+			dt = currentParams.smallestAllowableDt;
+		}
+		//If we reatched max table size we are not going to converge so just suck it up with a bad error
+		else if (dt < currentParams.smallestAllowableDt && currentParams.currentTableSize == currentParams.maxTableSize + 1)
+		{
+			//Accumulate the "bad" error
+			currentParams.totalError += currentError;
+
+			//Clamp dt
+			dt = currentParams.smallestAllowableDt;
+
+			//Reset the tale size for recording purposes
+			currentParams.currentTableSize = currentParams.maxTableSize;
+
+			//If we made it here dt was clamped thust degraded results.
+			currentParams.isDtClamped = true;
+
+			//Stop iterating
+			return false;
 		}
 		else
 		{
@@ -240,7 +271,6 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Stop the iterations
 		return false;
 	}
-
 	return true;
 }
 

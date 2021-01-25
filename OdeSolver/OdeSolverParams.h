@@ -33,6 +33,7 @@ public:
 	//Allowed deleta time
 	double minDt;
 	double maxDt;
+	double smallestAllowableDt;
 	double dt;
 	double currentTime;
 
@@ -62,7 +63,7 @@ public:
 	bool isFast; //The problem evolves quickly
 
 	//Construtors
-	inline OdeSolverParams(const array<bool, 5>&, const array<double, 2>&, const array<double, 2>&, const array<size_t, 2>&, const array<size_t, 3>&, const double&);
+	inline OdeSolverParams(const array<bool, 5>&, const array<double, 2>&, const array<double, 2>&, const array<size_t, 2>&, const array<size_t, 3>&, const double&, const double&);
 
 	//Copy Constructor
 	inline OdeSolverParams(const OdeSolverParams&) = default;
@@ -79,7 +80,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	const array<double, 2>& dtBounds = { .01,.1 },
 	const array<size_t, 2>& richLevelBounds = { 4,8 },
 	const array<size_t, 3>& problemSpecifics = { false,false,false },
-	const double& reductionFactorIn = 2.) :
+	const double& reductionFactorIn = 2.,
+	const double& smallestAllowableDtIn = 1e-5) :
 	useEuler(allowedMethods[0]),
 	useRK2(allowedMethods[1]),
 	useRK4(allowedMethods[2]),
@@ -104,7 +106,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	c(-1.0),
 	lastRun(false),
 	totalError(0.0),
-	currentTime(0.0)
+	currentTime(0.0),
+	smallestAllowableDt(smallestAllowableDtIn)
 {
 	//If the inputs are invalid we do no want to continue
 	if (!checkUserInputs())
@@ -162,6 +165,7 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	lastRun = params.lastRun;
 	totalError = params.totalError;
 	currentTime = params.currentTime;
+	smallestAllowableDt = params.smallestAllowableDt;
 
 	//Return this
 	return *this;
