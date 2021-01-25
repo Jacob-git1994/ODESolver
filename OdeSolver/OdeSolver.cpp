@@ -253,7 +253,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 /// <param name="beginTime"></param>
 /// <param name="endTime"></param>
 /// <param name="nodes"></param>
-void OdeSolver::run(OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime, const unsigned int nodes)
+void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime)
 {
 	//Initalize all the methods
 	methods.updateAll(initalConditions, generalParams.minTableSize, generalParams.redutionFactor, generalParams.dt);

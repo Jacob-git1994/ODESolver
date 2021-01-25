@@ -113,7 +113,7 @@ public:
 	~OdeSolver() = default;
 
 	//Run our method
-	void run(OdeFunIF*, crvec, const double, const double, const unsigned int);
+	void run(const OdeFunIF*, crvec, const double, const double);
 
 	//Clear out our data for another run
 	void refreshParams(const OdeSolverParams&);
