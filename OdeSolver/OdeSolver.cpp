@@ -171,7 +171,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//If this is first pass through we dont want to break
 	if (firstPassThrough && !currentParams.lastRun)
 	{
-		//Reset all our flags and table sizes
+		//Reset our shared parameters
 		currentParams.lastRun = false;
 		currentParams.satifiesError = false;
 		currentParams.currentTableSize = currentParams.minTableSize;
