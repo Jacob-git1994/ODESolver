@@ -72,7 +72,7 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 1,1000);
+	solver.run(testProblem, ic, 0.0, 1);
 
 	const unsigned int maxNodes = 10;
 	for (int i = 0; i <= maxNodes; ++i)
