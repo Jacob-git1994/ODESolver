@@ -28,7 +28,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
-	state[0] = currentState[0];
+	state[0] = std::cos(currentTime); //currentState[0];
 
 	return state;
 }
@@ -53,8 +53,8 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-10;
-	params.lowerError = 1e-11;
+	params.upperError = 1e-15;
+	params.lowerError = 1e-16;
 	params.redutionFactor = 2.;
 	params.dt = .01;
 	params.minDt = .01;
@@ -73,9 +73,9 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 20);
+	solver.run(testProblem, ic, 0.0, 1);
 
-	const unsigned int maxNodes = 10;
+	const unsigned int maxNodes = 1;
 	for (int i = 0; i <= maxNodes; ++i)
 	{
 		const double step = 5.*static_cast<double>(i) / static_cast<double>(maxNodes);
