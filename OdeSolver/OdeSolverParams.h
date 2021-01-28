@@ -35,6 +35,7 @@ public:
 	double maxDt;
 	double smallestAllowableDt;
 	double dt;
+	double upgradeFactor;
 	double currentTime;
 
 	//flag for last run
@@ -44,7 +45,7 @@ public:
 	double c;
 
 	//Parameters for dt
-	double isDtClamped;
+	bool isDtClamped;
 
 	//Time constraints
 	double currentRunTime;
@@ -107,7 +108,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	lastRun(false),
 	totalError(0.0),
 	currentTime(0.0),
-	smallestAllowableDt(smallestAllowableDtIn)
+	smallestAllowableDt(smallestAllowableDtIn),
+	upgradeFactor(-1.)
 {
 	//If the inputs are invalid we do no want to continue
 	if (!checkUserInputs())
@@ -166,6 +168,7 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	totalError = params.totalError;
 	currentTime = params.currentTime;
 	smallestAllowableDt = params.smallestAllowableDt;
+	upgradeFactor = params.upgradeFactor;
 
 	//Return this
 	return *this;

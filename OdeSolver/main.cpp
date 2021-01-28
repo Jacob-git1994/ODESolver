@@ -8,6 +8,7 @@
 #include <valarray>
 #include <iostream>
 #include <cmath>
+#include <iomanip>
 
 //using vec = std::valarray<double>;
 using std::cout;
@@ -28,6 +29,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
+	/*
 	//Generate velocity componets
 	state[0] = currentState[3];
 	state[1] = currentState[4];
@@ -48,6 +50,8 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 			state[i + 3] = 0.0;
 		}
 	}
+	*/
+	state[0] = currentTime / 10*currentState[0];
 
 	return state;
 }
@@ -58,8 +62,8 @@ int main()
 	OdeFunIF* testProblem = new Test;
 
 	//Initalize our inital condion
-	std::valarray<double> ic = { 0,0,0,0,0,10000};
-	std::valarray<double> sol(6);
+	std::valarray<double> ic = {1};//{ 0,0,0,0,0,10000};
+	std::valarray<double> sol(1);
 	double initalTime = 0.;
 
 	/*
@@ -72,14 +76,14 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-5;
-	params.lowerError = 1e-6;
+	params.upperError = 1e-9;
+	params.lowerError = 1e-10;
 	params.redutionFactor = 2.;
 	params.dt = .01;
-	params.minDt = .1;
-	params.maxDt = 10.;
+	params.minDt = .01;
+	params.maxDt = 2.;
 	params.minTableSize = 4;
-	params.maxTableSize = 8;
+	params.maxTableSize = 10;
 	params.useEuler = false;
 	params.useRK4 = true;
 	params.useRK2 = false;
@@ -92,8 +96,14 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 1000);
+	solver.run(testProblem, ic, 0.0, 10);
 
+	for (const auto& sol : solver.getResults())
+	{
+		std::cout << std::setprecision(8) << std::setw(10) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0]  << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\n";
+	}
+
+	/*
 	const unsigned int maxNodes = 1000;
 	for (int i = 0; i <= maxNodes; ++i)
 	{
@@ -101,6 +111,7 @@ int main()
 		std::cout << solver.getStateAndTime(step).getParams().currentTime << "\t" << solver.getStateAndTime(step).getState()[2] << "\t" 
 			<< solver.getStateAndTime(step).getParams().totalError << "\t" <<  solver.getResults().size()  << "\n";
 	}
+	*/
 
 	//std::cout << solver.getStateAndTime(1).getState()[0] << "\t" << solver.getStateAndTime(1).getParams().totalError << "\n";
 

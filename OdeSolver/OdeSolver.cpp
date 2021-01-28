@@ -141,137 +141,130 @@ vec OdeSolver::buildSolution(
 /// <returns></returns>
 const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstPassThrough, const double beginTime, const double endTime)
 {
-	//Get our variables to use to upgrade dt
+
+	//Get the parameters we will modify
 	double& dt = currentParams.dt;
-	const double& covergenceEstimate = currentParams.c;
+	double& totalError = currentParams.totalError;
+	double& upgradeFactor = currentParams.upgradeFactor;
+	bool& clamp = currentParams.isDtClamped;
+	bool& lastRun = currentParams.lastRun;
+	bool& conditionsSatisfied = currentParams.satifiesError;
+	unsigned int& currentTableSize = currentParams.currentTableSize;
+
+	//Get parameters we will use
+	const double& c = currentParams.c;
 	const double& currentError = currentParams.currentError;
 	const double& desiredError = currentParams.upperError;
-	const double& lowestErrorAllowed = currentParams.lowerError;
+	const double& lowestAllowableError = currentParams.lowerError;
 	const double& minDtUpgrade = currentParams.minDt;
 	const double& maxDtUpgrade = currentParams.maxDt;
-	double funcDerv = 0.0;
-	double desiredUpgrade = 0.0;
+	const double& smallestDtAllowed = currentParams.smallestAllowableDt;
+	const unsigned int& maxTableSize = currentParams.maxTableSize;
+	const unsigned int& minTableSize = currentParams.minTableSize;
 
-	//Reset dt if it would fall outside our bounds
-	if (dt + beginTime >= endTime && !currentParams.lastRun && !firstPassThrough)
+	//Our desired upgrade ammount
+	double desiredUpdate = 0.0;
+
+	//If this is the first pass through want to reset our working parameters and set up our new step sizes
+	if (firstPassThrough && !lastRun)
 	{
-		//Set dt to the remaining difference
-		dt = endTime - beginTime;
+		//Reset our parameters
+		currentTableSize = minTableSize;
+		clamp = false;
+		conditionsSatisfied = false;
+		lastRun = false;
 
-		//Set the last run flag
-		currentParams.lastRun = true;
+		//Update our dt by the upgrade factor found in previous iteration. If a previous iteration does not exsit then we skip this processing.
+		if (upgradeFactor > 0)
+		{
+			dt *= upgradeFactor;
+		}
 
-		//Set the table size to max to try and get a good convergence
-		currentParams.currentTableSize = currentParams.maxTableSize;
+		//Check if we need to clamp dt if we are at the end point of the interval
+		if (dt + beginTime > endTime)
+		{
+			//Reset dt to end where we plan on it ending
+			dt = endTime - beginTime;
 
-		//Run one more time
+			//Update table size to max to hope for better convergence since we don't control dt anymore
+			currentTableSize = maxTableSize;
+
+			//Update the last run flag
+			lastRun = true;
+		}
+
+		//Exit further processing
 		return true;
 	}
-
-	//If this is first pass through we dont want to break
-	if (firstPassThrough && !currentParams.lastRun)
+	else if (!lastRun)
 	{
-		//Reset our shared parameters
-		currentParams.lastRun = false;
-		currentParams.satifiesError = false;
-		currentParams.currentTableSize = currentParams.minTableSize;
-		currentParams.isDtClamped = false;
-	}
-	//We have converged within desired error range
-	else if ((!firstPassThrough && currentError <= desiredError && currentError >= lowestErrorAllowed && !currentParams.lastRun) || (!isfinite(covergenceEstimate) || covergenceEstimate < 0.0))
-	{
-		//Set the satified error flag
-		currentParams.satifiesError = true;
-
-		//Accumulate the error
-		currentParams.totalError += currentError;
-
-		//Break our loop
-		return false;
-	}
-	//We did not converge to desired solution
-	else if (!currentParams.lastRun)
-	{
-		//Set a guess for the derivative
-		funcDerv = currentError / pow(dt, covergenceEstimate);
-
-		//Get an estimate on how much we want to increase/decrease dt
-		desiredUpgrade = pow(desiredError / (funcDerv * currentError), 1. / covergenceEstimate);
-		desiredUpgrade = std::max(desiredUpgrade, minDtUpgrade);
-		desiredUpgrade = std::min(desiredUpgrade, maxDtUpgrade);
-
-		//Update our dt
-		dt *= .9 * desiredUpgrade;
-
-		//Check how we want to modify our table size
-		if (currentError < lowestErrorAllowed)
+		//Check if we did not satisify the error
+		if (currentError > desiredError && !lastRun && isfinite(c) && c > 0.0)
 		{
-			currentParams.currentTableSize--;
+			//Get an estimate on how much we want to increase/decrease dt
+			desiredUpdate = pow(desiredError / (currentError), 1. / c);
+			desiredUpdate = std::max(desiredUpdate, minDtUpgrade);
+			desiredUpdate = std::min(desiredUpdate, maxDtUpgrade);
+
+
+			//Update the dt by the ratio we want
+			dt *= .9 * desiredUpdate;
+
+			//Increase our table size to increase accuracy
+			currentTableSize++;
+			
+			//Clamp our table size if we exceed the bounds
+			if (currentTableSize > maxTableSize)
+			{
+				//Reset the current table size
+				currentTableSize = maxTableSize;
+			}
+
+			//Check to make sure dt satisfies what we will allow
+			if (dt < smallestDtAllowed)
+			{
+				//Reset dt
+				dt = smallestDtAllowed;
+
+				//Update our flag
+				clamp = true;
+			}
+
+			return true;
 		}
-		else if (currentError > desiredError || dt < currentParams.smallestAllowableDt)
+		//Check if we satisifed the error
+		else if ((currentError <= desiredError || !isfinite(c) || c < 0.0) && !lastRun)
 		{
-			currentParams.currentTableSize++;
-		}
-		else
-		{
-			//Do nothing here
-		}
+			//Get an estimate on how much we want to increase/decrease dt
+			desiredUpdate = pow(desiredError / (currentError), 1. / c);
+			desiredUpdate = std::max(desiredUpdate, minDtUpgrade);
+			desiredUpdate = std::min(desiredUpdate, maxDtUpgrade);
 
-		//If dt is smaller than allowed value we want to clamp
-		if (dt < currentParams.smallestAllowableDt && currentParams.currentTableSize != currentParams.maxTableSize + 1)
-		{
-			dt = currentParams.smallestAllowableDt;
-		}
-		//If we reatched max table size we are not going to converge so just suck it up with a bad error
-		else if (dt < currentParams.smallestAllowableDt && currentParams.currentTableSize == currentParams.maxTableSize + 1)
-		{
-			//Accumulate the "bad" error
+			//Set our upgrade factor for the next run
+			upgradeFactor = desiredUpdate;
+
+			//Set our conditions satisfied
+			conditionsSatisfied = true;
+
+			//Accumulate the error
 			currentParams.totalError += currentError;
-
-			//Clamp dt
-			dt = currentParams.smallestAllowableDt;
-
-			//Reset the tale size for recording purposes
-			currentParams.currentTableSize = currentParams.maxTableSize;
-
-			//If we made it here dt was clamped thust degraded results.
-			currentParams.isDtClamped = true;
-
-			//Stop iterating
+			
+			//Exit Processing and move onto the next iteration in time
 			return false;
 		}
-		else
-		{
-			//Do nothing here
-		}
-
-		//Check to ensure we clamp table size
-		if (currentParams.currentTableSize > currentParams.maxTableSize)
-		{
-			currentParams.currentTableSize = currentParams.maxTableSize;
-		}
-		else if (currentParams.currentTableSize < currentParams.minTableSize)
-		{
-			currentParams.currentTableSize = currentParams.minTableSize;
-		}
-		else
-		{
-			//Do nothing here
-		}
 	}
-	//We ran the last time
+	//We ran with the last runs dt and now we can stop processing this method
 	else
 	{
-		//Check if we satisfied the error
-		currentParams.satifiesError = (currentError <= desiredError) && (currentError >= lowestErrorAllowed);
+		//check if we satisfied some error
+		conditionsSatisfied = currentError <= desiredError;
 
 		//Accumulate the error
 		currentParams.totalError += currentError;
 
-		//Stop the iterations
+		//Exit processing and evaluate final result
 		return false;
 	}
-	return true;
 }
 
 /// <summary>
@@ -716,7 +709,7 @@ void OdeSolver::setup()
 	//Check if no methods were created
 	if (allowedMethods.empty())
 	{
-		throw runtime_error("Method map is zero");
+		throw runtime_error("No valid methods");
 		exit(-1);
 	}
 
