@@ -56,7 +56,7 @@ public:
 	MethodWrapperBase(MethodWrapperBase&&) noexcept = default;
 
 	//Using default assign move operator
-	MethodWrapperBase& operator=(MethodWrapperBase&&) = default;
+	MethodWrapperBase& operator=(MethodWrapperBase&&) noexcept = default;
 
 	//Default destructor
 	~MethodWrapperBase() = default;
