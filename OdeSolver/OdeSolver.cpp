@@ -168,7 +168,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//If this is the first pass through want to reset our working parameters and set up our new step sizes
 	if (firstPassThrough && !lastRun)
 	{
-		//Reset our parameters
+		//Reset common parameters
 		currentTableSize = minTableSize;
 		clamp = false;
 		conditionsSatisfied = false;
@@ -206,7 +206,6 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			desiredUpdate = std::max(desiredUpdate, minDtUpgrade);
 			desiredUpdate = std::min(desiredUpdate, maxDtUpgrade);
 
-
 			//Update the dt by the ratio we want
 			dt *= .9 * desiredUpdate;
 
@@ -243,6 +242,18 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			//Set our upgrade factor for the next run
 			upgradeFactor = desiredUpdate;
 
+			//Check if we can lower our table size
+			if (currentError <= lowestAllowableError)
+			{
+				//Get an estimate on how much we want to increase/decrease dt base on if the error is too small
+				desiredUpdate = pow(lowestAllowableError / (currentError), 1. / c);
+				desiredUpdate = std::max(desiredUpdate, minDtUpgrade);
+				desiredUpdate = std::min(desiredUpdate, maxDtUpgrade);
+
+				//Change our upgrade factor
+				upgradeFactor = desiredUpdate;
+			}
+
 			//Set our conditions satisfied
 			conditionsSatisfied = true;
 
@@ -265,6 +276,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		//Exit processing and evaluate final result
 		return false;
 	}
+	//If something goes wrong and we get to this step we want to just do it again :)
+	return true;
 }
 
 /// <summary>

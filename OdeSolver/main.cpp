@@ -51,7 +51,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 		}
 	}
 	*/
-	state[0] = currentTime / 10*currentState[0];
+	state[0] = 10*currentState[0];
 
 	return state;
 }
@@ -77,7 +77,7 @@ int main()
 	OdeSolverParams params;
 
 	params.upperError = 1e-9;
-	params.lowerError = 1e-10;
+	params.lowerError = 1e-12;
 	params.redutionFactor = 2.;
 	params.dt = .01;
 	params.minDt = .01;
@@ -96,7 +96,7 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 10);
+	solver.run(testProblem, ic, 0.0, 1);
 
 	for (const auto& sol : solver.getResults())
 	{

@@ -98,7 +98,7 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	isLarge(problemSpecifics[1]),
 	isFast(problemSpecifics[2]),
 	currentError(0.0),
-	currentTableSize(1),
+	currentTableSize(richLevelBounds[0]),
 	currentRunTime(0.0),
 	dt(.01),
 	redutionFactor(reductionFactorIn),
