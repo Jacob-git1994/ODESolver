@@ -56,8 +56,8 @@ void Richardson::operator()(const size_t rowIndx, const size_t colIndx, crvec cu
 double Richardson::normedError() const
 {
 	//Get the error vector
-	//vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 1][result.size() - 2];
-	vec error = result[result.size() - 1][result.size() - 1] - result[0][0];
+	vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 1][result.size() - 2];
+	//vec error = result[result.size() - 1][result.size() - 1] - result[0][0];
 
 	//Calculate the norm
 	double normVal = 0.;

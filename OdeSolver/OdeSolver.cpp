@@ -175,7 +175,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		lastRun = false;
 
 		//Update our dt by the upgrade factor found in previous iteration. If a previous iteration does not exsit then we skip this processing.
-		if (upgradeFactor > 0)
+		if (upgradeFactor > 1)
 		{
 			dt *= upgradeFactor;
 		}
