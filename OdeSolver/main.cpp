@@ -51,7 +51,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 		}
 	}
 	*/
-	state[0] = currentState[0];
+	state[0] = -currentState[0];
 
 	return state;
 }
@@ -76,18 +76,18 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-15;
-	params.lowerError = 1e-16;
+	params.upperError = 1e-13;
+	params.lowerError = 1e-14;
 	params.redutionFactor = 2.;
-	params.dt = .01;
+	params.dt = .1;
 	params.minDt = .01;
 	params.maxDt = 2.;
-	params.minTableSize = 2;
-	params.maxTableSize = 5;
-	params.useEuler = true;
+	params.minTableSize = 4;
+	params.maxTableSize = 16;
+	params.useEuler = false;
 	params.useRK4 = true;
-	params.useRK2 = true;
-	params.smallestAllowableDt = 1e-4;
+	params.useRK2 = false;
+	params.smallestAllowableDt = 1e-6;
 
 	OdeSolver solver(params);
 	OdeSolver solv2;
@@ -96,11 +96,11 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 1);
+	solver.run(testProblem, ic, 0.0, 20);
 
 	for (const auto& sol : solver.getResults())
 	{
-		std::cout << std::setprecision(8) << std::setw(10) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0]  << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\n";
+		std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0]  << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
 	}
 
 	/*

@@ -74,7 +74,7 @@ vec OdeSolver::buildSolution(
 	Richardson& currentTable, 
 	OdeSolverParams& currentMethodParams, 
 	crvec initalCondition, 
-	const OdeFunIF* problem, 
+	const OdeFunIF* problem,
 	const double beginTime, 
 	const double endTime)
 {
@@ -165,11 +165,14 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//Our desired upgrade ammount
 	double desiredUpdate = 0.0;
 
+	//Estimate the global errors (known error on grid + potential error left)
+	const double globalError = totalError + std::floor((endTime - beginTime) / dt) * currentError;
+
 	//If this is the first pass through want to reset our working parameters and set up our new step sizes
 	if (firstPassThrough && !lastRun)
 	{
 		//Reset common parameters
-		currentTableSize = minTableSize;
+		//currentTableSize = minTableSize;
 		clamp = false;
 		conditionsSatisfied = false;
 		lastRun = false;
@@ -199,10 +202,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	else if (!lastRun)
 	{
 		//Check if we did not satisify the error
-		if (currentError > desiredError && !lastRun && isfinite(c) && c > 0.0)
+		if (globalError > desiredError && !lastRun && isfinite(c) && c > 0.0)
 		{
 			//Get an estimate on how much we want to increase/decrease dt
-			desiredUpdate = pow(desiredError / (currentError), 1. / c);
+			desiredUpdate = pow(desiredError / globalError, 1. / c);
 			desiredUpdate = std::max(desiredUpdate, minDtUpgrade);
 			desiredUpdate = std::min(desiredUpdate, maxDtUpgrade);
 
@@ -232,7 +235,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			return true;
 		}
 		//Check if we satisifed the error
-		else if ((currentError <= desiredError || !isfinite(c) || c < 0.0) && !lastRun)
+		else if ((globalError <= desiredError || !isfinite(c) || c < 0.0) && !lastRun)
 		{
 			//Get an estimate on how much we want to increase/decrease dt
 			desiredUpdate = pow(desiredError / (currentError), 1. / c);
@@ -243,7 +246,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			upgradeFactor = desiredUpdate;
 
 			//Check if we can lower our table size
-			if (currentError <= lowestAllowableError)
+			if (globalError <= lowestAllowableError)
 			{
 				//Get an estimate on how much we want to increase/decrease dt base on if the error is too small
 				desiredUpdate = pow(lowestAllowableError / (currentError), 1. / c);
@@ -252,6 +255,15 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 
 				//Change our upgrade factor
 				upgradeFactor = desiredUpdate;
+
+				//Decrease our table size
+				currentTableSize--;
+			}
+
+			//Clamp our table size
+			if (currentTableSize < minTableSize)
+			{
+				currentTableSize = minTableSize;
 			}
 
 			//Set our conditions satisfied
@@ -321,6 +333,9 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 
 			//Get the current problems result map
 			vector<StateVector>& currentStateVector = resultMap.find(methodItr->first)->second;
+
+			//Set the richardson table size
+			currentParams.currentTableSize = currentParams.minTableSize;
 
 			//Put back the time iterations
 			methodThreads.push_back(std::move(thread(
