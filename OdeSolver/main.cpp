@@ -51,7 +51,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 		}
 	}
 	*/
-	state[0] = -currentState[0];
+	state[0] = currentState[0];
 
 	return state;
 }
@@ -76,17 +76,17 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-13;
-	params.lowerError = 1e-14;
+	params.upperError = 1e-8;
+	params.lowerError = 1e-10;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .01;
 	params.maxDt = 2.;
 	params.minTableSize = 4;
 	params.maxTableSize = 16;
-	params.useEuler = false;
+	params.useEuler = true;
 	params.useRK4 = true;
-	params.useRK2 = false;
+	params.useRK2 = true;
 	params.smallestAllowableDt = 1e-6;
 
 	OdeSolver solver(params);
@@ -96,7 +96,7 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 20);
+	solver.run(testProblem, ic, 0.0, 1);
 
 	for (const auto& sol : solver.getResults())
 	{
