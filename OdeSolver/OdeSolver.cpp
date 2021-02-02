@@ -149,7 +149,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	bool& clamp = currentParams.isDtClamped;
 	bool& lastRun = currentParams.lastRun;
 	bool& conditionsSatisfied = currentParams.satifiesError;
-	unsigned int& currentTableSize = currentParams.currentTableSize;
+	size_t& currentTableSize = currentParams.currentTableSize;
 
 	//Get parameters we will use
 	const double& c = currentParams.c;
@@ -159,8 +159,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	const double& minDtUpgrade = currentParams.minDt;
 	const double& maxDtUpgrade = currentParams.maxDt;
 	const double& smallestDtAllowed = currentParams.smallestAllowableDt;
-	const unsigned int& maxTableSize = currentParams.maxTableSize;
-	const unsigned int& minTableSize = currentParams.minTableSize;
+	size_t& maxTableSize = currentParams.maxTableSize;
+	size_t& minTableSize = currentParams.minTableSize;
 
 	//Our desired upgrade ammount
 	double desiredUpdate = 0.0;
