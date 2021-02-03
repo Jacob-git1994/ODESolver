@@ -76,14 +76,14 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-10;
-	params.lowerError = 1e-17;
+	params.upperError = 1e-3;
+	params.lowerError = 1e-8;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .01;
 	params.maxDt = 2.;
-	params.minTableSize = 4;
-	params.maxTableSize = 16;
+	params.minTableSize = 6;
+	params.maxTableSize = 12;
 	params.useEuler = false;
 	params.useRK4 = true;
 	params.useRK2 = false;
@@ -96,7 +96,7 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 1);
+	solver.run(testProblem, ic, 0.0, 10);
 
 	for (const auto& sol : solver.getResults())
 	{
