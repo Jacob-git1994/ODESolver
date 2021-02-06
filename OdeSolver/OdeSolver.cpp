@@ -172,7 +172,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	if (firstPassThrough && !lastRun)
 	{
 		//Reset common parameters
-		//currentTableSize = minTableSize;
+		currentTableSize = minTableSize;
 		clamp = false;
 		conditionsSatisfied = false;
 		lastRun = false;

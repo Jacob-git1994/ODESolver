@@ -107,7 +107,7 @@ public:
 	OdeSolver(OdeSolver&&) noexcept = default;
 
 	//Use the default move assigment constructor
-	OdeSolver& operator=(OdeSolver&&) = default;
+	OdeSolver& operator=(OdeSolver&&) noexcept = default;
 
 	//Destructor using default
 	~OdeSolver() = default;

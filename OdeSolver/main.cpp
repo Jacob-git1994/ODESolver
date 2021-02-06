@@ -51,7 +51,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 		}
 	}
 	*/
-	state[0] = std::sin(1. / (currentTime + 1.0));
+	state[0] = -currentState[0];
 
 	return state;
 }
@@ -76,18 +76,18 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-11;
+	params.upperError = 1e-4;
 	params.lowerError = 1e-15;
 	params.redutionFactor = 2.;
 	params.dt = .1;
-	params.minDt = .01;
+	params.minDt = .1;
 	params.maxDt = 2.;
 	params.minTableSize = 4;
-	params.maxTableSize = 12;
+	params.maxTableSize = 6;
 	params.useEuler = false;
 	params.useRK4 = true;
 	params.useRK2 = false;
-	params.smallestAllowableDt = 1e-8;
+	params.smallestAllowableDt = 1e-4;
 
 	OdeSolver solver(params);
 	OdeSolver solv2;
