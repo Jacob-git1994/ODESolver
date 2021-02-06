@@ -51,7 +51,19 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 		}
 	}
 	*/
-	state[0] = -currentState[0];
+
+	double thrust = 0.0;
+	if (currentTime <= 40)
+	{
+		thrust = 100;
+	}
+
+	double theta = -.1;
+
+	state[0] = currentState[2];
+	state[1] = currentState[3];
+	state[2] = -thrust * std::sin(theta);
+	state[3] = thrust * std::cos(theta);
 
 	return state;
 }
@@ -62,8 +74,8 @@ int main()
 	OdeFunIF* testProblem = new Test;
 
 	//Initalize our inital condion
-	std::valarray<double> ic = {1};//{ 0,0,0,0,0,10000};
-	std::valarray<double> sol(1);
+	std::valarray<double> ic = {0,0,-100,0};//{ 0,0,0,0,0,10000};
+	std::valarray<double> sol(4);
 	double initalTime = 0.;
 
 	/*
@@ -77,7 +89,7 @@ int main()
 	OdeSolverParams params;
 
 	params.upperError = 1e-4;
-	params.lowerError = 1e-15;
+	params.lowerError = 1e-5;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .1;
@@ -94,11 +106,11 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 10);
+	solver.run(testProblem, ic, 0.0, 50);
 
 	for (const auto& sol : solver.getResults())
 	{
-		std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0]  << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
+		std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0] << "\t" << sol.getState()[1]  << "\t" << sol.getState()[2] << "\t" << sol.getState()[3] << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
 	}
 
 	/*

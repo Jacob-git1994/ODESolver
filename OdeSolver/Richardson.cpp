@@ -59,17 +59,20 @@ double Richardson::normedError() const
 	vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 2][result.size() - 2];
 	//vec error = result[result.size() - 1][result.size() - 1] - result[0][0];
 
-	//Calculate the norm
+	//temp place to store the max error
 	double normVal = 0.;
 
-	//find the norms
+	//Find the max value in our error vector (maximum error)
 	for (size_t i = 0; i < error.size(); ++i)
 	{
-		normVal += error[i] * error[i];
+		if (error[i] > normVal)
+		{
+			normVal = error[i];
+		}
 	}
 
-	//Return the sqrt of the normed error
-	return  sqrt(normVal);
+	//Return the greatest error found
+	return normVal;
 }
 
 double Richardson::error(rvec bestResult, double& c, const double leadingOrder)
