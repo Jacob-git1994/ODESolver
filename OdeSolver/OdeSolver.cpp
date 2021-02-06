@@ -334,9 +334,6 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 			//Get the current problems result map
 			vector<StateVector>& currentStateVector = resultMap.find(methodItr->first)->second;
 
-			//Set the richardson table size
-			currentParams.currentTableSize = currentParams.minTableSize;
-
 			//Put back the time iterations
 			methodThreads.push_back(std::move(thread(
 				&OdeSolver::updateNextTimeStep,

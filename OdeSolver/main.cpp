@@ -90,9 +90,7 @@ int main()
 	params.smallestAllowableDt = 1e-4;
 
 	OdeSolver solver(params);
-	OdeSolver solv2;
-
-	solv2 = std::move(params);
+	OdeSolver solv2 = std::move(params);
 
 	solver.refreshParams(params);
 		
