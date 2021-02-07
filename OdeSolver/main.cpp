@@ -29,36 +29,13 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
-	/*
-	//Generate velocity componets
-	state[0] = currentState[3];
-	state[1] = currentState[4];
-	state[2] = currentState[5];
-
-	//Generate acceleration componets
-	state[3] = 0;
-	state[4] = 0;
-	state[5] = -(5.972e+27 * 10. * 6.673e-11) / (currentState[2] * currentState[2] + 6.3781e6 * 6.3781e6);
-
-	//Reset the state if we go negetive
-	for (int i = 0; i < 3; ++i)
-	{
-		//Hit the earth
-		if (state[i] < 0)
-		{
-			state[i] = 0;
-			state[i + 3] = 0.0;
-		}
-	}
-	*/
-
 	double thrust = 0.0;
 	if (currentTime <= 40)
 	{
 		thrust = 100;
 	}
 
-	double theta = -.5;
+	double theta = .5;
 
 	state[0] = currentState[2];
 	state[1] = currentState[3];
