@@ -55,10 +55,10 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 	double thrust = 0.0;
 	if (currentTime <= 40)
 	{
-		thrust = 10000;
+		thrust = 100;
 	}
 
-	double theta = -.1;
+	double theta = -.5;
 
 	state[0] = currentState[2];
 	state[1] = currentState[3];
