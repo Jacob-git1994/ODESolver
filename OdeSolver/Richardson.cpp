@@ -75,7 +75,7 @@ double Richardson::normedError() const
 	return normVal;
 }
 
-double Richardson::error(rvec bestResult, double& c, const double leadingOrder)
+const double Richardson::error(rvec bestResult, double& c, const double leadingOrder)
 {
 	//Get ref to the current object
 	Richardson& currentTable = *this;
@@ -101,13 +101,13 @@ double Richardson::error(rvec bestResult, double& c, const double leadingOrder)
 	currentNormError = normedError();
 
 	//Set c to our approximaation of convergence
-	c = log(currentNormError) / log(stepSize);
+	c = abs(log(currentNormError) / log(stepSize));
 
 	//return error
 	return currentNormError;
 }
 
-double Richardson::error(double& c, const double leadingOrder)
+const double Richardson::error(double& c, const double leadingOrder)
 {
 	//Get ref to the current object
 	Richardson& currentTable = *this;
@@ -132,7 +132,7 @@ double Richardson::error(double& c, const double leadingOrder)
 	currentNormError = normedError();
 
 	//Set c to our approximaation of covergence
-	c = log(currentNormError) / log(stepSize);
+	c = abs(log(currentNormError) / log(stepSize));
 
 	//return error
 	return currentNormError;

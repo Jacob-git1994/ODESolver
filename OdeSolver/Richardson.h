@@ -67,10 +67,10 @@ public:
 	void operator()(const size_t, const size_t, crvec);
 
 	//Get the error, updated vector, and estimate of the orders constant
-	double error(rvec, double&, const double);
+	const double error(rvec, double&, const double);
 
 	//Get the error ignoring the updated vector
-	double error(double&, const double);
+	const double error(double&, const double);
 
 	//Just get the error founds ignorning the other elements
 	double error();
