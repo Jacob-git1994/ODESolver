@@ -813,8 +813,9 @@ const bool OdeSolver::isExplict(const unsigned int methodId) const
 	}
 	case 40:
 	case 50:
+	{
 		return false;
-
+	}
 	default:
 	{
 		throw std::invalid_argument("Method Id not found");
