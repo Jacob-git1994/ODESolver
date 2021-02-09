@@ -23,7 +23,7 @@ public:
 	inline StateVector(const valarray<double>&, const OdeSolverParams&);
 
 	//Constructor with move
-	inline StateVector(valarray<double>&&, OdeSolverParams&&) noexcept;
+	inline StateVector(valarray<double>&&, OdeSolverParams&&);
 
 	//Using default Copy Constructor
 	inline StateVector(const StateVector&) = default;
