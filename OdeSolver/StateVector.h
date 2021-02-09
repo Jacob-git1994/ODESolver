@@ -19,8 +19,11 @@ private:
 
 public:
 
-	//Constructor
+	//Constructor with copy
 	inline StateVector(const valarray<double>&, const OdeSolverParams&);
+
+	//Constructor with move
+	inline StateVector(valarray<double>&&, OdeSolverParams&&) noexcept;
 
 	//Using default Copy Constructor
 	inline StateVector(const StateVector&) = default;
@@ -45,7 +48,24 @@ public:
 
 };
 
+/// <summary>
+/// Copy over vector and parameters to our state vector
+/// </summary>
+/// <param name="currentStateIn"></param>
+/// <param name="currentParamsIn"></param>
 StateVector::StateVector(const valarray<double>& currentStateIn, const OdeSolverParams& currentParamsIn) :
+	currentState(currentStateIn),
+	currentParams(currentParamsIn)
+{
+	//Nothing else to do here
+}
+
+/// <summary>
+/// Move our vector and parameters to our state vector
+/// </summary>
+/// <param name="currentStateIn"></param>
+/// <param name="currentParamsIn"></param>
+StateVector::StateVector(valarray<double>&& currentStateIn, OdeSolverParams&& currentParamsIn) :
 	currentState(currentStateIn),
 	currentParams(currentParamsIn)
 {
