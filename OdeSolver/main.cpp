@@ -29,6 +29,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 					  const std::valarray<double>& currentState,
 					  const double& currentTime) const
 {
+	/*
 	double thrust = 0.0;
 	if (currentTime <= 40)
 	{
@@ -43,6 +44,9 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 	state[3] = thrust * std::cos(theta);
 
 	return state;
+	*/
+	state[0] = currentState[0]*std::cos(currentTime)*currentTime;
+	return state;
 }
 
 int main()
@@ -51,8 +55,8 @@ int main()
 	OdeFunIF* testProblem = new Test;
 
 	//Initalize our inital condion
-	std::valarray<double> ic = {0,0,-100,0};//{ 0,0,0,0,0,10000};
-	std::valarray<double> sol(4);
+	std::valarray<double> ic = {1};//{ 0,0,0,0,0,10000};
+	std::valarray<double> sol(1);
 	double initalTime = 0.;
 
 	/*
@@ -66,16 +70,16 @@ int main()
 	OdeSolverParams params;
 
 	params.upperError = 1e-4;
-	params.lowerError = 1e-5;
+	params.lowerError = 1e-11;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .1;
 	params.maxDt = 2.;
-	params.minTableSize = 4;
-	params.maxTableSize = 6;
-	params.useEuler = false;
+	params.minTableSize = 6;
+	params.maxTableSize = 8;
+	params.useEuler = true;
 	params.useRK4 = true;
-	params.useRK2 = false;
+	params.useRK2 = true;
 	params.smallestAllowableDt = 1e-4;
 
 	OdeSolver solver(params);
@@ -83,11 +87,13 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 50);
+	solver.run(testProblem, ic, 0.0, 8);
 
 	for (const auto& sol : solver.getResults())
 	{
-		std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0] << "\t" << sol.getState()[1]  << "\t" << sol.getState()[2] << "\t" << sol.getState()[3] << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
+		std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0] <<  "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize << "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
+
+		//std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0] << "\t" << sol.getState()[1]  << "\t" << sol.getState()[2] << "\t" << sol.getState()[3] << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
 	}
 
 	/*

@@ -41,13 +41,11 @@ public:
 	// Initalize the current state vector and solving helper vectors
 	virtual void initalize(crvec) override;
 
-	/// Update the current vector's state to the next state based on the function vectors derivative
-	virtual rvec update(crvec,
-						rvec,
-						const double&,
-						const double&,
-						const int&,
-						const OdeFunIF*) override;
+	/// Update the current vector's state for explct methods
+	virtual rvec update(crvec, rvec, const double&, const double&, const int&, const OdeFunIF*) override;
+
+	//Get the next time step for rvec for implict methods
+	virtual rvec update(crvec, rvec, const double&, const double&, const int&, const OdeFunIF*, const double&, const double&) override;
 
 	/// Return the error order of the Euler method
 	virtual const double getErrorOrder() const override;

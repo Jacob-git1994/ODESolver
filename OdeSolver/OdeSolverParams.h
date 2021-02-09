@@ -63,8 +63,12 @@ public:
 	bool isLarge; //The problem requires a large table
 	bool isFast; //The problem evolves quickly
 
+	//Implict Solver Parameters
+	double implictDt;
+	double implictError;
+
 	//Construtors
-	inline OdeSolverParams(const array<bool, 5>&, const array<double, 2>&, const array<double, 2>&, const array<size_t, 2>&, const array<size_t, 3>&, const double&, const double&);
+	inline OdeSolverParams(const array<bool, 5>&, const array<double, 2>&, const array<double, 2>&, const array<size_t, 2>&, const array<size_t, 3>&, const double&, const double&, const array<double, 2>&);
 
 	//Copy Constructor
 	inline OdeSolverParams(const OdeSolverParams&) = default;
@@ -82,7 +86,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	const array<size_t, 2>& richLevelBounds = { 4,8 },
 	const array<size_t, 3>& problemSpecifics = { false,false,false },
 	const double& reductionFactorIn = 2.,
-	const double& smallestAllowableDtIn = 1e-5) :
+	const double& smallestAllowableDtIn = 1e-5,
+	const array<double, 2>& implictParams = {.1, .0001}) :
 	useEuler(allowedMethods[0]),
 	useRK2(allowedMethods[1]),
 	useRK4(allowedMethods[2]),
@@ -109,7 +114,9 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	totalError(0.0),
 	currentTime(0.0),
 	smallestAllowableDt(smallestAllowableDtIn),
-	upgradeFactor(-1.)
+	upgradeFactor(-1.),
+	implictDt(implictParams[0]),
+	implictError(implictParams[1])
 {
 	//If the inputs are invalid we do no want to continue
 	if (!checkUserInputs())
@@ -134,6 +141,9 @@ bool OdeSolverParams::checkUserInputs() const
 
 	//Make sure we have a valid reduction factor
 	goodArgs &= (redutionFactor > 1);
+
+	//Make sure the implict parameters are valid
+	goodArgs &= isfinite(implictDt) && isfinite(implictError) && implictDt > 0.0 && implictError > 0.0;
 
 	//Return if the arguments are valid
 	return goodArgs;

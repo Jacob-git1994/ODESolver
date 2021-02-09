@@ -18,18 +18,7 @@ void RK4::initalizeSolverVectors()
 	currentMethod.k4.resize(currentMethod.currentState.size());
 }
 
-const double RK4::getErrorOrder() const
-{
-	return 4.0;
-}
-
-rvec RK4::update(
-	crvec			previousState,
-	rvec			newState,
-	const double&	dt,
-	const double&	beginTime,
-	const int&		numOfSteps,
-	const OdeFunIF* problem)
+rvec RK4::update(crvec previousState, rvec newState, const double& dt, const double& beginTime, const int& numOfSteps, const OdeFunIF* problem)
 {
 	//Update the current state
 	currentState = previousState;
@@ -58,4 +47,26 @@ rvec RK4::update(
 
 	//Return the new state
 	return newState;
+}
+
+/// <summary>
+/// Will run the implict solver. Will fail as RK4 is not implict.
+/// </summary>
+/// <param name="previousState"></param>
+/// <param name="newState"></param>
+/// <param name="dt"></param>
+/// <param name="beginTime"></param>
+/// <param name="numOfSteps"></param>
+/// <param name="problem"></param>
+/// <param name="implictDt"></param>
+/// <param name="implictError"></param>
+/// <returns></returns>
+rvec RK4::update(crvec previousState, rvec newState, const double& dt, const double& beginTime, const int& numOfSteps, const OdeFunIF* problem, const double& implictDt, const double& implictError)
+{
+	throw logic_error("Implict Method Not Implimented in Explict Scheme");
+}
+
+const double RK4::getErrorOrder() const
+{
+	return 4.0;
 }

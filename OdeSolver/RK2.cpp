@@ -54,6 +54,23 @@ valarray<double>& RK2::update(
 	return newState;
 }
 
+/// <summary>
+/// Will run the implict solver. Will fail as RK2 is not implict
+/// </summary>
+/// <param name="previousState"></param>
+/// <param name="newState"></param>
+/// <param name="dt"></param>
+/// <param name="beginTime"></param>
+/// <param name="numOfSteps"></param>
+/// <param name="problem"></param>
+/// <param name="implictDt"></param>
+/// <param name="implictError"></param>
+/// <returns></returns>
+rvec RK2::update(crvec previousState, rvec newState, const double& dt, const double& beginTime, const int& numOfSteps, const OdeFunIF* problem, const double& implictDt, const double& implictError)
+{
+	throw logic_error("Implict Method Not Implimented in Explict Scheme");
+}
+
 const double RK2::getErrorOrder() const
 {
 	return 3.0;

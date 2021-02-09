@@ -40,7 +40,20 @@ void Richardson::initalizeSteps(const double& reduct, const double& dt)
 	stepSize = dt;
 }
 
-void Richardson::operator()(const size_t rowIndx, const size_t colIndx, crvec currentResult)
+void Richardson::append(const size_t rowIndx, const size_t colIndx, valarray<double>&& currentResult)
+{
+	try
+	{
+		result[rowIndx][colIndx] = currentResult;
+	}
+	catch (exception& e)
+	{
+		cerr << e.what();
+		exit(-1);
+	}
+}
+
+void Richardson::append(const size_t rowIndx, const size_t colIndx, const valarray<double>& currentResult)
 {
 	try
 	{
@@ -57,7 +70,6 @@ double Richardson::normedError() const
 {
 	//Get the error vector
 	vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 2][result.size() - 2];
-	//vec error = result[result.size() - 1][result.size() - 1] - result[0][0];
 
 	//temp place to store the max error
 	double normVal = 0.;
@@ -65,9 +77,13 @@ double Richardson::normedError() const
 	//Find the max value in our error vector (maximum error)
 	for (size_t i = 0; i < error.size(); ++i)
 	{
-		if (error[i] > normVal)
+		//Get the abs of the error
+		const double absError = fabs(error[i]);
+
+		//Check if this is the largest error
+		if (absError > normVal)
 		{
-			normVal = error[i];
+			normVal = absError;
 		}
 	}
 
@@ -75,7 +91,7 @@ double Richardson::normedError() const
 	return normVal;
 }
 
-const double Richardson::error(rvec bestResult, double& c, const double leadingOrder)
+const double Richardson::error(rvec bestResult, double& c)
 {
 	//Get ref to the current object
 	Richardson& currentTable = *this;
@@ -92,7 +108,7 @@ const double Richardson::error(rvec bestResult, double& c, const double leadingO
 				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
 
 			//Save the updated result to the table
-			currentTable(i, j + 1, std::move(updatedResult));
+			currentTable.append(i, j + 1, std::move(updatedResult));
 		}
 	}
 
@@ -102,65 +118,6 @@ const double Richardson::error(rvec bestResult, double& c, const double leadingO
 
 	//Set c to our approximaation of convergence
 	c = abs(log(currentNormError) / log(stepSize));
-
-	//return error
-	return currentNormError;
-}
-
-const double Richardson::error(double& c, const double leadingOrder)
-{
-	//Get ref to the current object
-	Richardson& currentTable = *this;
-
-	//Iterate through the rows of the table
-	for (size_t i = 1; i < result.size(); ++i)
-	{
-		//Iterate through the columns
-		for (size_t j = 0; j < i; ++j)
-		{
-			//Get the updated result
-			vec updatedResult = (pow(reductionFactor, static_cast<double>(j) + 1.)
-				* result[i][j] - result[i - 1][j])
-				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
-
-			//Save the updated result to the table
-			currentTable(i, j + 1, std::move(updatedResult));
-		}
-	}
-
-	//Get the error found
-	currentNormError = normedError();
-
-	//Set c to our approximaation of covergence
-	c = abs(log(currentNormError) / log(stepSize));
-
-	//return error
-	return currentNormError;
-}
-
-double Richardson::error()
-{
-	//Get ref to the current object
-	Richardson& currentTable = *this;
-
-	//Iterate through the rows of the table
-	for (size_t i = 1; i < result.size(); ++i)
-	{
-		//Iterate through the columns
-		for (size_t j = 0; j < i; ++j)
-		{
-			//Get the updated result
-			vec updatedResult = (pow(reductionFactor, static_cast<double>(j) + 1.)
-				* result[i][j] - result[i - 1][j])
-				/ (pow(reductionFactor, static_cast<double>(j) + 1.) - 1.);
-
-			//Save the updated result to the table
-			currentTable(i, j + 1, std::move(updatedResult));
-		}
-	}
-
-	//Get the error of the best result
-	currentNormError = normedError();
 
 	//return error
 	return currentNormError;

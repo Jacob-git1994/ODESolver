@@ -2,9 +2,11 @@
 
 #include "OdeFunIF.h"
 
+#include <stdexcept>
 #include <valarray>
 
 //Convience for writing out methods
+using std::logic_error;
 using std::valarray;
 using vec = valarray<double>;
 using crvec = const vec&;
@@ -55,13 +57,11 @@ public:
 	//Initalize the method's size
 	virtual void initalize(crvec) = 0;
 
-	//Get the next time step for rvec
-	virtual rvec update(crvec,
-						rvec,
-						const double&,
-						const double&,
-						const int&,
-						const OdeFunIF*) = 0;
+	//Get the next time step for rvec for explict methods
+	virtual rvec update(crvec, rvec, const double&, const double&, const int&, const OdeFunIF*) = 0;
+
+	//For implict methods
+	virtual rvec update(crvec, rvec, const double&, const double&, const int&, const OdeFunIF*, const double&, const double&) = 0;
 
 	//Get the power of the error
 	virtual const double getErrorOrder() const = 0;

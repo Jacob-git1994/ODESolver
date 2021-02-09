@@ -63,17 +63,14 @@ public:
 	//Initalize our steps
 	void initalizeSteps(const double&, const double&);
 
-	//Append the result
-	void operator()(const size_t, const size_t, crvec);
+	//Append result moving the result
+	void append(const size_t, const size_t, valarray<double>&&);
+
+	//Append the result copying the result
+	void append(const size_t, const size_t, const valarray<double>&);
 
 	//Get the error, updated vector, and estimate of the orders constant
-	const double error(rvec, double&, const double);
-
-	//Get the error ignoring the updated vector
-	const double error(double&, const double);
-
-	//Just get the error founds ignorning the other elements
-	double error();
+	const double error(rvec, double&);
 
 	//Get the table size
 	const size_t getTableSize() const;

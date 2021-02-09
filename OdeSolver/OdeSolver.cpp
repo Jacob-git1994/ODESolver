@@ -23,38 +23,31 @@ OdeSolver::OdeSolver(const OdeSolverParams& paramsIn) :
 /// <param name="currentParams"></param>
 /// <param name="initalTime"></param>
 /// <param name="newTime"></param>
-void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method, Richardson& tables, crvec initalCondition, rvec newState, const OdeSolverParams& currentParams, const double initalTime, const double newTime)
+void OdeSolver::runMethod(const OdeFunIF* problem, unique_ptr<SolverIF>& method, const unsigned int currentMethodId, Richardson& tables, crvec initalCondition, rvec newState, const OdeSolverParams& currentParams, const double initalTime, const double newTime)
 {
 	//Loop over all the tables
 	for (unsigned int i = 0; i < tables.getTableSize(); ++i)
 	{
-		//Update the tables
-		updateMethod(method, currentParams, tables, initalCondition, newState, currentParams.dt, initalTime, newTime, problem, i);
+		//Check if we are using an implict method
+		if (isExplict(currentMethodId))
+		{
+			//Solve for the next time step
+			method->update(initalCondition, newState, currentParams.dt / pow(tables.getReductionFactor(), static_cast<double>(i)), initalTime, static_cast<int>(pow(tables.getReductionFactor(), static_cast<double>(i))), problem);
+		}
+		//If we are implict then run the implict updating method
+		else if (!isExplict(currentMethodId))
+		{
+			//Solve for the next time step
+			method->update(initalCondition, newState, currentParams.dt / pow(tables.getReductionFactor(), static_cast<double>(i)), initalTime, static_cast<int>(pow(tables.getReductionFactor(), static_cast<double>(i))), problem, currentParams.implictDt, currentParams.implictError);
+		}
+		else
+		{
+			throw runtime_error("Could not resolve method");
+		}
+
+		//Add the result into the tables
+		tables.append(i, 0, newState);
 	}
-}
-
-/// <summary>
-/// Here we call each method with a desired number of runs to achive our best result. 
-/// We only care about updating the method, not the method its self. 
-/// After we solve the correct number of times desired we append the results into the richardson tables to be analized at the end. 
-/// </summary>
-/// <param name="method"></param>
-/// <param name="currentParams"></param>
-/// <param name="tables"></param>
-/// <param name="intialCondition"></param>
-/// <param name="newState"></param>
-/// <param name="dt"></param>
-/// <param name="initalTime"></param>
-/// <param name="newTime"></param>
-/// <param name="problem"></param>
-/// <param name="i"></param>
-void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams& currentParams, Richardson& tables, crvec intialCondition, rvec newState, const double dt, const double initalTime, const double newTime, const OdeFunIF* problem, const int i)
-{
-	//Solve for the next time step
-	method->update(intialCondition, newState, currentParams.dt / pow(tables.getReductionFactor(), static_cast<double>(i)), initalTime, static_cast<int>(pow(tables.getReductionFactor(), static_cast<double>(i))), problem);
-
-	//Add the result into the tables
-	tables(i, 0, newState);
 }
 
 /// <summary>
@@ -68,15 +61,7 @@ void OdeSolver::updateMethod(unique_ptr<SolverIF>& method, const OdeSolverParams
 /// <param name="beginTime"></param>
 /// <param name="endTime"></param>
 /// <returns></returns>
-vec OdeSolver::buildSolution(
-	unique_ptr<SolverIF>& currentMethod,
-	const unsigned int currentMethodId, 
-	Richardson& currentTable, 
-	OdeSolverParams& currentMethodParams, 
-	crvec initalCondition, 
-	const OdeFunIF* problem,
-	const double beginTime, 
-	const double endTime)
+vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod, const unsigned int currentMethodId, Richardson& currentTable, OdeSolverParams& currentMethodParams, crvec initalCondition, const OdeFunIF* problem,const double beginTime, const double endTime)
 {
 	//Reset the satisfaction criteria
 	currentMethodParams.satifiesError = false;
@@ -103,18 +88,10 @@ vec OdeSolver::buildSolution(
 		currentTable.BuildTables(currentMethodParams.currentTableSize, initalCondition.size());
 
 		//Run our method
-		runMethod(
-			problem,
-			currentMethod,
-			currentTable,
-			initalCondition,
-			newState,
-			currentMethodParams,
-			beginTime,
-			endTime);
+		runMethod(problem, currentMethod, currentMethodId, currentTable, initalCondition, newState, currentMethodParams, beginTime, endTime);
 
 		//Update the results with the new error
-		currentMethodParams.currentError = currentTable.error(newState, currentMethodParams.c, currentMethod->getErrorOrder());
+		currentMethodParams.currentError = currentTable.error(newState, currentMethodParams.c);
 
 		//Build more tables if the error is greater then the greatest error
 	} while (updateDt(currentMethodParams, false, beginTime, endTime));
@@ -159,8 +136,10 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	const double& minDtUpgrade = currentParams.minDt;
 	const double& maxDtUpgrade = currentParams.maxDt;
 	const double& smallestDtAllowed = currentParams.smallestAllowableDt;
-	size_t& maxTableSize = currentParams.maxTableSize;
-	size_t& minTableSize = currentParams.minTableSize;
+	const size_t& maxTableSize = currentParams.maxTableSize;
+	const size_t& minTableSize = currentParams.minTableSize;
+	const bool& isStiff = currentParams.isStiff;
+	const bool& isFast = currentParams.isFast;
 
 	//Our desired upgrade ammount
 	double desiredUpdate = 0.0;
@@ -172,10 +151,15 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	if (firstPassThrough && !lastRun)
 	{
 		//Reset common parameters
-		currentTableSize = minTableSize;
 		clamp = false;
 		conditionsSatisfied = false;
 		lastRun = false;
+
+		//Check if we want restart our search from the smallest table size or if it would be more optimal to start from the previous guess
+		if (!(isStiff || isFast))
+		{
+			currentTableSize = minTableSize;
+		}
 
 		//Update our dt by the upgrade factor found in previous iteration. If a previous iteration does not exsit then we skip this processing.
 		if (upgradeFactor > 1)
@@ -814,5 +798,26 @@ void OdeSolver::updateNextTimeStep(
 			cerr << e.what();
 			exit(1);
 		}
+	}
+}
+
+const bool OdeSolver::isExplict(const unsigned int methodId) const
+{
+	switch (methodId)
+	{
+	case 10:
+	case 20:
+	case 30:
+	{
+		return true;
+	}
+	case 40:
+	case 50:
+		return false;
+
+	default:
+	{
+		throw std::invalid_argument("Method Id not found");
+	}
 	}
 }

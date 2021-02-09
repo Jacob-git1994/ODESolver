@@ -64,30 +64,21 @@ private:
 	void setup();
 
 	// This will run the paticular method referenced in input arguments.
-	void runMethod(const OdeFunIF*, unique_ptr<SolverIF>&, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
+	void runMethod(const OdeFunIF*, unique_ptr<SolverIF>&, const unsigned int, Richardson&, crvec, rvec, const OdeSolverParams&, const double, const double);
 
 	// This will build the solution from the current time step to the next "best" time step.
 	vec buildSolution(unique_ptr<SolverIF>&, const unsigned int, Richardson&, OdeSolverParams&, crvec, const OdeFunIF*, const double, const double);
 
 	// This updates the method to the next time step. 
 	// This is used in each thread. 
-	void updateNextTimeStep(
-		const unsigned int,
-		unique_ptr<SolverIF>&,
-		OdeSolverParams&,
-		Richardson&,
-		const double,
-		const double,
-		const valarray<double>&,
-		const OdeFunIF*,
-		vector<StateVector>&);
-
-	// This method calls the current method's method to update the current state to the next time step. 
-	void updateMethod(unique_ptr<SolverIF>&, const OdeSolverParams&, Richardson&, crvec, rvec, const double, const double, const double, const OdeFunIF*, const int);
+	void updateNextTimeStep(const unsigned int, unique_ptr<SolverIF>&, OdeSolverParams&, Richardson&, const double, const double, const valarray<double>&, const OdeFunIF*, vector<StateVector>&);
 
 	// Check the error and determine if an upgrade or downgrade is required to satify the current estimated error. 
 	// If we fail and we are not on the last iteration, we will find the new dt and run the iteration scheme again
 	const bool updateDt(OdeSolverParams&, const bool, const double, const double);
+
+	//Check if our method is either implict or explict
+	const bool isExplict(const unsigned int) const;
 
 public:
 

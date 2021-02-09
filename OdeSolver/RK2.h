@@ -36,14 +36,11 @@ public:
 	//Initalize the vector
 	virtual void initalize(const valarray<double>&) override;
 
-	//Get the next time step for rvec
-	virtual rvec update(
-		const valarray<double>&,
-		valarray<double>&,
-		const double&,
-		const double&,
-		const int&,
-		const OdeFunIF*) override;
+	//Get the next time step for rvec for explict methods
+	virtual rvec update(const valarray<double>&, valarray<double>&, const double&, const double&, const int&, const OdeFunIF*) override;
+
+	//Get the next time step for rvec for implict methods
+	virtual rvec update(crvec, rvec, const double&, const double&, const int&, const OdeFunIF*, const double&, const double&) override;
 
 	//Get the power of the error
 	virtual const double getErrorOrder() const override;
