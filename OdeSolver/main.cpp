@@ -77,9 +77,9 @@ int main()
 	params.maxDt = 2.;
 	params.minTableSize = 6;
 	params.maxTableSize = 8;
-	params.useEuler = true;
+	params.useEuler = false;
 	params.useRK4 = true;
-	params.useRK2 = true;
+	params.useRK2 = false;
 	params.smallestAllowableDt = 1e-4;
 
 	OdeSolver solver(params);
