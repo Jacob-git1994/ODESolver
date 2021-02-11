@@ -80,14 +80,15 @@ int main()
 	params.useEuler = false;
 	params.useRK4 = true;
 	params.useRK2 = false;
-	params.smallestAllowableDt = 1e-4;
+	params.isFast = true;
+	params.smallestAllowableDt = 1e-2;
 
 	OdeSolver solver(params);
 	OdeSolver solv2 = std::move(params);
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, .5);
+	solver.run(testProblem, ic, 0.0, 5);
 
 	for (const auto& sol : solver.getResults())
 	{

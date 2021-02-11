@@ -133,15 +133,22 @@ void MethodWrapperBase::updateAll(const vec& state, const size_t tableSize, cons
 void MethodWrapperBase::buildSolvers(const OdeSolverParams& paramsIn)
 {
 
-	//Check if our problem is stiff or large eigenvalues that might affect stability
-	if (paramsIn.isStiff || paramsIn.isFast)
+	//Check if our problem is stiff
+	if (paramsIn.isStiff)
 	{
 		//Add Implict Methods only
 		
 		//Exit here
 		return;
 	}
-	//Check problem is large computationally
+	//Check problem might grow really fast use rk4 & implict methods
+	else if (paramsIn.isFast)
+	{
+		//Add RK4 method
+		getMethodMap().emplace(static_cast<unsigned int>(SolverIF::SOLVER_TYPES::RUNGE_KUTTA_FOUR),
+			std::move(unique_ptr<SolverIF>(new RK4)));
+	}
+	//Check if the system is large so the run time could be large with implict but we need high accuracy
 	else if (paramsIn.isLarge)
 	{
 		//Add RK4 method
