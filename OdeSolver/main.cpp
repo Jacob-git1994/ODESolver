@@ -45,7 +45,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 
 	return state;
 	*/
-	state[0] = 1.0 + currentState[0]*currentState[0];//currentState[0]*std::cos(currentTime)*currentTime;
+	state[0] = currentState[0];//currentState[0]*std::cos(currentTime)*currentTime;
 	return state;
 }
 
@@ -55,7 +55,7 @@ int main()
 	OdeFunIF* testProblem = new Test;
 
 	//Initalize our inital condion
-	std::valarray<double> ic = {0};//{ 0,0,0,0,0,10000};
+	std::valarray<double> ic = {1};//{ 0,0,0,0,0,10000};
 	std::valarray<double> sol(1);
 	double initalTime = 0.;
 
