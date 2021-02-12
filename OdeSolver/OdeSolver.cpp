@@ -150,10 +150,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	//If this is the first pass through want to reset our working parameters and set up our new step sizes
 	if (firstPassThrough && !lastRun)
 	{
-		//Reset common parameters
-		clamp = false;
 		conditionsSatisfied = false;
 		lastRun = false;
+		clamp = false;
 
 		//Check if we want restart our search from the smallest table size or if it would be more optimal to start from the previous guess
 		if (!(isStiff || isFast))
@@ -162,7 +161,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 		}
 
 		//Update our dt by the upgrade factor found in previous iteration. If a previous iteration does not exsit then we skip this processing.
-		if (upgradeFactor > 1)
+		if (upgradeFactor > 1.0)
 		{
 			dt *= upgradeFactor;
 		}
@@ -185,8 +184,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	}
 	else if (!lastRun)
 	{
-		//Check if we did not satisify the error
-		if (globalError > desiredError && !lastRun && isfinite(c) && c > 0.0)
+		//Check if we did not satisify the error and dt is not clampped
+		if (globalError > desiredError && !lastRun && isfinite(c) && c > 0.0 && !clamp)
 		{
 			//Get an estimate on how much we want to increase/decrease dt
 			desiredUpdate = pow(desiredError / globalError, 1. / c);
@@ -218,8 +217,8 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 
 			return true;
 		}
-		//Check if we satisifed the error
-		else if ((globalError <= desiredError || !isfinite(c) || c < 0.0) && !lastRun)
+		//Check if we satisifed the error or dt was forced to be clampped we want to exit the iteration
+		else if ((globalError <= desiredError || !isfinite(c) || c < 0.0 || clamp) && !lastRun)
 		{
 			//Get an estimate on how much we want to increase/decrease dt
 			desiredUpdate = pow(desiredError / (currentError), 1. / c);
