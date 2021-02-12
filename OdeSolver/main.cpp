@@ -81,14 +81,14 @@ int main()
 	params.useRK4 = true;
 	params.useRK2 = false;
 	params.isFast = true;
-	params.smallestAllowableDt = 1e-4;
+	params.smallestAllowableDt = 1e-5;
 
 	OdeSolver solver(params);
 	OdeSolver solv2 = std::move(params);
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 1.8);
+	solver.run(testProblem, ic, 0.0, 10);
 
 	for (const auto& sol : solver.getResults())
 	{
