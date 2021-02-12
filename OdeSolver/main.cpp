@@ -69,7 +69,7 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-10;
+	params.upperError = 1e-5;
 	params.lowerError = 1e-11;
 	params.redutionFactor = 2.;
 	params.dt = .1;
