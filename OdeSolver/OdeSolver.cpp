@@ -215,6 +215,9 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 				clamp = true;
 			}
 
+			//Set our conditions satisifed to false as we did not converge to the correct solution
+			conditionsSatisfied = false;
+
 			return true;
 		}
 		//Check if we satisifed the error or dt was forced to be clampped we want to exit the iteration
