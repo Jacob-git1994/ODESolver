@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -28,6 +29,7 @@ using std::cerr;
 using std::pow;
 using std::thread;
 using std::setprecision;
+using std::mutex;
 using paramMap = map<unsigned int, OdeSolverParams>;
 using resultNode = vector<StateVector>;
 using results = map<unsigned int, resultNode>;
@@ -119,12 +121,12 @@ public:
 	const vector<StateVector>& getResults() const;
 
 	//Get the results with a paticular method and time
-	StateVector getStateAndTime(SolverIF::SOLVER_TYPES, const double) const;
+	const StateVector getStateAndTime(SolverIF::SOLVER_TYPES, const double) const;
 
 	//Get the results with a paticular method known enum value and time
-	StateVector getStateAndTime(const unsigned int, const double) const;
+	const StateVector getStateAndTime(const unsigned int, const double) const;
 
 	//Find the best result and return the state vector interplation of that result
-	StateVector getStateAndTime(const double) const;
+	const StateVector getStateAndTime(const double) const;
 };
 
