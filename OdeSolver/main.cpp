@@ -79,7 +79,7 @@ int main()
 	params.maxTableSize = 8;
 	params.useEuler = true;
 	params.useRK4 = true;
-	params.useRK2 = true;
+	params.useRK2 = false;
 	params.isFast = false;
 	params.smallestAllowableDt = 1e-5;
 
@@ -88,7 +88,7 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 8);
+	solver.run(testProblem, ic, 0.0, 10);
 
 	for (const auto& sol : solver.getResults())
 	{

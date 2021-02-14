@@ -342,11 +342,8 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 		//Keep running to check the status of everyone
 		while (allowedCheckup)
 		{
-			//Get our lock
-			mutex methodLock;
-
-			//Lock the threads
-			methodLock.lock();
+			//Counter to ensure we are all finished
+			short int counter = 0;
 
 			//Get the status of the method
 			for (map<unsigned int, unique_ptr<SolverIF>>::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
@@ -357,12 +354,16 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 				//Print our the current percentage done to terminal
 				std::cout << std::setw(4) << methodItr->first << "\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done" << std::endl;
 
-				//Update if we keep running this
-				allowedCheckup &= !currentParams.lastRun;
+				//Update if we should continue sampling
+				counter += static_cast<short int>(currentParams.lastRun);
 			}
 
-			//Unlock all the threads
-			methodLock.unlock();
+			//check out counter
+			if (counter == allowedMethods.size())
+			{
+				//Break loop
+				allowedCheckup = false;
+			}
 
 			//Delay our sampling time
 			std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -724,8 +725,17 @@ void OdeSolver::updateNextTimeStep(
 
 	while (currentTime < endTime)
 	{
-		//Solver for the next time step for the current method
-		currentState = buildSolution(currentMethod, methodId, currentTables, currentParameters, currentState, problem, currentTime, endTime);
+		try
+		{
+			//Solver for the next time step for the current method
+			currentState = buildSolution(currentMethod, methodId, currentTables, currentParameters, currentState, problem, currentTime, endTime);
+		}
+		catch (exception& e)
+		{
+			//Print our error and exit the program
+			cerr << e.what();
+			exit(1);
+		}
 
 		//Update the time
 		currentTime += dt;
