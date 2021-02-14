@@ -671,18 +671,20 @@ void OdeSolver::setup()
 		throw runtime_error("No valid methods");
 		exit(1);
 	}
-
-	//Iterate through the allowed methods to build the parameter tables and results table
-	for (methodMap::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
+	else
 	{
-		//This is the ID/enum for the method
-		const unsigned int methodId = methodItr->first;
+		//Iterate through the allowed methods to build the parameter tables and results table
+		for (methodMap::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
+		{
+			//This is the ID/enum for the method
+			const unsigned int methodId = methodItr->first;
 
-		//Add the method id and parameters to our param map
-		params.emplace(methodId, generalParams);
+			//Add the method id and parameters to our param map
+			params.emplace(methodId, generalParams);
 
-		//set up our result map
-		resultMap.emplace(methodId, vector<StateVector>());
+			//set up our result map
+			resultMap.emplace(methodId, vector<StateVector>());
+		}
 	}
 }
 
@@ -700,16 +702,8 @@ void OdeSolver::setup()
 /// <param name="initalConditions"></param>
 /// <param name="problem"></param>
 /// <param name="results"></param>
-void OdeSolver::updateNextTimeStep(
-	const unsigned int methodId, 
-	unique_ptr<SolverIF>& currentMethod, 
-	OdeSolverParams& currentParameters, 
-	Richardson& currentTables, 
-	const double beginTime, 
-	const double endTime, 
-	const valarray<double>& initalConditions, 
-	const OdeFunIF* problem,
-	vector<StateVector>& results)
+void OdeSolver::updateNextTimeStep(const unsigned int methodId, unique_ptr<SolverIF>& currentMethod, OdeSolverParams& currentParameters, 
+	Richardson& currentTables, const double beginTime, const double endTime, const valarray<double>& initalConditions, const OdeFunIF* problem, vector<StateVector>& results)
 {
 	//Get our lock
 	mutex lock;
