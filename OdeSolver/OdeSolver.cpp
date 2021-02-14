@@ -723,11 +723,11 @@ void OdeSolver::updateNextTimeStep(const unsigned int methodId, unique_ptr<Solve
 	//Save our currentState
 	valarray<double> currentState = initalConditions;
 
-	//Add the current time to our parameters
-	currentParameters.currentTime = currentTime;
-
 	//Lock
 	lock.lock();
+
+	//Add the current time to our parameters
+	currentParameters.currentTime = currentTime;
 
 	//Try adding the first state vector to our results
 	try
