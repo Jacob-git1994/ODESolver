@@ -345,6 +345,12 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 			//Counter to ensure we are all finished
 			short int counter = 0;
 
+			//Get our lock
+			mutex lock;
+
+			//Lock our thread
+			lock.lock();
+
 			//Get the status of the method
 			for (map<unsigned int, unique_ptr<SolverIF>>::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
 			{
@@ -352,11 +358,17 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 				const OdeSolverParams& currentParams = params.find(methodItr->first)->second;
 
 				//Print our the current percentage done to terminal
-				std::cout << std::setw(4) << methodItr->first << "\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done" << std::endl;
+				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done}" << "\t";
 
 				//Update if we should continue sampling
 				counter += static_cast<short int>(currentParams.lastRun);
 			}
+
+			//End line
+			std::cout << std::endl;
+
+			//Unlock
+			lock.unlock();
 
 			//check out counter
 			if (counter == allowedMethods.size())
