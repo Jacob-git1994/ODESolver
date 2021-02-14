@@ -79,9 +79,13 @@ int main()
 	params.maxTableSize = 8;
 	params.useEuler = true;
 	params.useRK4 = true;
-	params.useRK2 = false;
+	params.useRK2 = true;
 	params.isFast = false;
 	params.smallestAllowableDt = 1e-5;
+
+	auto begin = 0.0;
+	auto end = 10.0;
+	auto dt = .01;
 
 	OdeSolver solver(params);
 	OdeSolver solv2 = std::move(params);
@@ -90,12 +94,35 @@ int main()
 		
 	solver.run(testProblem, ic, 0.0, 10);
 
+	const auto grid = [&]()
+	{
+		std::vector<double> timeGrid;
+
+		auto& currentTime = begin;
+		timeGrid.push_back(currentTime);
+		for (; currentTime <= end; currentTime += dt)
+		{
+			timeGrid.push_back(currentTime);
+		}
+
+		return timeGrid;
+	};
+
+	for (auto&& time : grid())
+	{
+		const auto& state = solver.getStateAndTime(time);
+
+		std::cout << state.getParams().currentTime << "\t" << state.getState()[0] << std::endl;
+	}
+
+	/*
 	for (const auto& sol : solver.getResults())
 	{
 		std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0] <<  "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize << "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
 
 		//std::cout << std::setprecision(18) << std::setw(18) << std::left << sol.getParams().currentTime << "\t" << std::left << sol.getState()[0] << "\t" << sol.getState()[1]  << "\t" << sol.getState()[2] << "\t" << sol.getState()[3] << "\t" << std::left << sol.getParams().dt << "\t" << std::left << sol.getParams().currentTableSize<< "\t" << std::left << sol.getParams().totalError << "\t" << std::left << sol.getParams().c << "\n";
 	}
+	*/
 
 	std::cout << solver.getStateAndTime(.5).getState()[0] << "\n";
 
