@@ -345,12 +345,6 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 			//Counter to ensure we are all finished
 			short int counter = 0;
 
-			//Get our lock
-			mutex lock;
-
-			//Lock our thread
-			lock.lock();
-
 			//Get the status of the method
 			for (map<unsigned int, unique_ptr<SolverIF>>::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
 			{
@@ -366,9 +360,6 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 
 			//End line
 			std::cout << std::endl;
-
-			//Unlock
-			lock.unlock();
 
 			//check out counter
 			if (counter == allowedMethods.size())
@@ -668,7 +659,7 @@ void OdeSolver::setup()
 	catch (exception& e)
 	{
 		cerr << e.what();
-		exit(-1);
+		exit(1);
 	}
 
 	//Get the methods allowed
@@ -678,7 +669,7 @@ void OdeSolver::setup()
 	if (allowedMethods.empty())
 	{
 		throw runtime_error("No valid methods");
-		exit(-1);
+		exit(1);
 	}
 
 	//Iterate through the allowed methods to build the parameter tables and results table
@@ -720,8 +711,17 @@ void OdeSolver::updateNextTimeStep(
 	const OdeFunIF* problem,
 	vector<StateVector>& results)
 {
+	//Get our lock
+	mutex lock;
+
+	//Lock the thread
+	lock.lock();
+
 	//Get this current methods dt
 	double& dt = currentParameters.dt;
+
+	//Unlock
+	lock.unlock();
 
 	//Save our current time
 	double currentTime = beginTime;
@@ -732,22 +732,53 @@ void OdeSolver::updateNextTimeStep(
 	//Add the current time to our parameters
 	currentParameters.currentTime = currentTime;
 
-	//Add the first result into results
-	results.push_back(std::move(StateVector(currentState, currentParameters)));
+	//Lock
+	lock.lock();
+
+	//Try adding the first state vector to our results
+	try
+	{
+		//Add the first result into results
+		results.push_back(std::move(StateVector(currentState, currentParameters)));
+	}
+	catch (exception& e)
+	{
+		//Unlock our thread
+		lock.unlock();
+
+		//Result error code and exit further processing
+		std::cerr << e.what();
+		exit(1);
+	}
+
+	//Unlock
+	lock.unlock();
 
 	while (currentTime < endTime)
 	{
 		try
 		{
+			//Lock
+			lock.lock();
+
 			//Solver for the next time step for the current method
 			currentState = buildSolution(currentMethod, methodId, currentTables, currentParameters, currentState, problem, currentTime, endTime);
+
+			//Unlock
+			lock.unlock();
 		}
 		catch (exception& e)
 		{
+			//Unlock
+			lock.unlock();
+
 			//Print our error and exit the program
 			cerr << e.what();
 			exit(1);
 		}
+
+		//Lock
+		lock.lock();
 
 		//Update the time
 		currentTime += dt;
@@ -763,9 +794,15 @@ void OdeSolver::updateNextTimeStep(
 		}
 		catch (exception& e)
 		{
+			//Unlock
+			lock.unlock();
+
 			cerr << e.what();
 			exit(1);
 		}
+
+		//Unlock
+		lock.unlock();
 	}
 }
 
