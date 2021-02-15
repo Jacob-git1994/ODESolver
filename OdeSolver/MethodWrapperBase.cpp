@@ -1,6 +1,10 @@
 #include "MethodWrapperBase.h"
 
-//Define the find method pointer
+/// <summary>
+/// Finds the method by the methods enumeration.
+/// </summary>
+/// <param name="solver"></param>
+/// <returns></returns>
 methodPtr& MethodWrapperBase::findMethod(SolverIF::SOLVER_TYPES solver)
 {
 	//Convert solver types to int for the map
@@ -20,7 +24,11 @@ methodPtr& MethodWrapperBase::findMethod(SolverIF::SOLVER_TYPES solver)
 	}
 }
 
-//Define the find table for the method
+/// <summary>
+/// Finds the table based on the method enumeration.
+/// </summary>
+/// <param name="solver"></param>
+/// <returns></returns>
 Richardson& MethodWrapperBase::findTable(SolverIF::SOLVER_TYPES solver)
 {
 	//Convert solver types to int for the map
@@ -40,6 +48,10 @@ Richardson& MethodWrapperBase::findTable(SolverIF::SOLVER_TYPES solver)
 	}
 }
 
+/// <summary>
+/// Initalizes all the methods with the size of our vector.
+/// </summary>
+/// <param name="state"></param>
 void MethodWrapperBase::updateForVectorSize(const vec& state)
 {
 	//Loop through the methods
@@ -59,30 +71,45 @@ void MethodWrapperBase::updateForVectorSize(const vec& state)
 	}
 }
 
-//Get the map to the methods
+/// <summary>
+/// Get the method map.
+/// </summary>
+/// <returns></returns>
 methodMap& MethodWrapperBase::getMethodMap()
 {
 	return methods;
 }
 
-//Get the map to the tables
+/// <summary>
+/// Get the table map.
+/// </summary>
+/// <returns></returns>
 tableMap& MethodWrapperBase::getTableMap()
 {
 	return tables;
 }
 
-//Get the const map to the methods
+/// <summary>
+/// Get a const method map.
+/// </summary>
+/// <returns></returns>
 const methodMap& MethodWrapperBase::getMethodMap() const
 {
 	return methods;
 }
 
-//Get the const map to the tables
+/// <summary>
+/// Get a const table map.
+/// </summary>
+/// <returns></returns>
 const tableMap& MethodWrapperBase::getTableMap() const
 {
 	return tables;
 }
 
+/// <summary>
+/// Build up our richardson tables for each allowed method
+/// </summary>
 void MethodWrapperBase::buildTables()
 {
 	//Go through what methods we are using and add a table class to each one

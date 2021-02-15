@@ -78,6 +78,7 @@ public:
 
 	//Assign Operator
 	inline const OdeSolverParams& operator=(const OdeSolverParams&);
+
 };
 
 OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,false,false,false,false },
@@ -87,7 +88,7 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	const array<size_t, 3>& problemSpecifics = { false,false,false },
 	const double& reductionFactorIn = 2.,
 	const double& smallestAllowableDtIn = 1e-5,
-	const array<double, 2>& implictParams = {.1, .0001}) :
+	const array<double, 2>& implictParams = { .1, .0001 }) :
 	useEuler(allowedMethods[0]),
 	useRK2(allowedMethods[1]),
 	useRK4(allowedMethods[2]),
