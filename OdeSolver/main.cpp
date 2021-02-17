@@ -69,14 +69,14 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-10;
+	params.upperError = 1e-12;
 	params.lowerError = 1e-16;
 	params.redutionFactor = 2.;
-	params.dt = .1;
+	params.dt = .001;
 	params.minDt = .1;
 	params.maxDt = 2.;
 	params.minTableSize = 2;
-	params.maxTableSize = 20;
+	params.maxTableSize = 15;
 	params.useEuler = true;
 	params.useRK4 = true;
 	params.useRK2 = true;
@@ -84,7 +84,7 @@ int main()
 	params.smallestAllowableDt = 1e-4;
 
 	auto begin = 0.0;
-	auto end = 1.0;
+	auto end = 4.0;
 	auto dt = .01;
 
 	OdeSolver solver(params);

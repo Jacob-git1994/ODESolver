@@ -187,7 +187,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 	else if (!lastRun)
 	{
 		//Check if we did not satisify the error and dt is not clampped
-		if (globalError > desiredError && !lastRun && isfinite(c) && c > 0.0 && !clamp)
+		if (globalError > desiredError && !lastRun && isfinite(c) && c > 0.0 && !(clamp && currentTableSize == maxTableSize))
 		{
 			//Get an estimate on how much we want to increase/decrease dt
 			desiredUpdate = pow(desiredError / globalError, 1. / c);
@@ -223,7 +223,7 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 			return true;
 		}
 		//Check if we satisifed the error or dt was forced to be clampped we want to exit the iteration
-		else if ((globalError <= desiredError || !isfinite(c) || c < 0.0 || clamp) && !lastRun)
+		else if ((globalError <= desiredError || !isfinite(c) || c < 0.0 || (clamp && currentTableSize == maxTableSize)) && !lastRun)
 		{
 			//Get an estimate on how much we want to increase/decrease dt
 			desiredUpdate = pow(desiredError / (currentError), 1. / c);
@@ -353,7 +353,7 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 				const OdeSolverParams& currentParams = params.find(methodItr->first)->second;
 
 				//Print our the current percentage done to terminal
-				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done; Remaining Time: "
+				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << "CurrentTime: " << currentParams.currentTime << "; " << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done; Remaining Time: "
 					<< std::max((std::floor((endTime - beginTime) / (currentParams.dt)) * currentParams.currentRunTime) - currentParams.totalTime, 0.0) << "; TotalError: " 
 					<< currentParams.totalError << "; Step Size: " << currentParams.dt << "; NumLevels: " << currentParams.currentTableSize << "}" << std::endl;
 

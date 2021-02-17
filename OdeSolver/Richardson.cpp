@@ -70,6 +70,7 @@ double Richardson::normedError() const
 {
 	//Get the error vector
 	vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 2][result.size() - 2];
+	//vec error = result[result.size() - 1][result.size() - 1] - result[0][0];
 
 	//temp place to store the max error
 	double normVal = 0.;
