@@ -100,7 +100,8 @@ vec OdeSolver::buildSolution(unique_ptr<SolverIF>& currentMethod, const unsigned
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	//Save the duriation of time
-	currentMethodParams.currentRunTime += std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
+	currentMethodParams.currentRunTime = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
+	currentMethodParams.totalTime += currentMethodParams.currentRunTime;
 
 	//Return the new state found
 	return newState;
@@ -352,7 +353,7 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 				const OdeSolverParams& currentParams = params.find(methodItr->first)->second;
 
 				//Print our the current percentage done to terminal
-				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done}" << "\t";
+				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done; Remaining Time: " << ((((endTime - beginTime) / (currentParams.dt)) * currentParams.currentRunTime) -  currentParams.totalTime) << "; TotalError: " << currentParams.totalError <<  "}" << "\t";
 
 				//Update if we should continue sampling
 				counter += static_cast<short int>(currentParams.lastRun);

@@ -37,6 +37,7 @@ public:
 	double dt;
 	double upgradeFactor;
 	double currentTime;
+	double totalTime;
 
 	//flag for last run
 	bool lastRun;
@@ -117,7 +118,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	smallestAllowableDt(smallestAllowableDtIn),
 	upgradeFactor(-1.),
 	implictDt(implictParams[0]),
-	implictError(implictParams[1])
+	implictError(implictParams[1]),
+	totalTime(0.0)
 {
 	//If the inputs are invalid we do no want to continue
 	if (!checkUserInputs())
@@ -180,6 +182,7 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	currentTime = params.currentTime;
 	smallestAllowableDt = params.smallestAllowableDt;
 	upgradeFactor = params.upgradeFactor;
+	totalTime = params.totalTime;
 
 	//Return this
 	return *this;
