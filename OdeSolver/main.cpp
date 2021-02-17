@@ -69,19 +69,19 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-15;
+	params.upperError = 1e-10;
 	params.lowerError = 1e-16;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .1;
 	params.maxDt = 2.;
-	params.minTableSize = 8;
-	params.maxTableSize = 12;
+	params.minTableSize = 2;
+	params.maxTableSize = 20;
 	params.useEuler = true;
 	params.useRK4 = true;
 	params.useRK2 = true;
 	params.isFast = false;
-	params.smallestAllowableDt = 1e-8;
+	params.smallestAllowableDt = 1e-4;
 
 	auto begin = 0.0;
 	auto end = 1.0;
@@ -113,7 +113,7 @@ int main()
 	{
 		const auto& state = solver.getStateAndTime(time);
 
-		std::cout << state.getParams().currentTime << "\t" << state.getState()[0] << std::endl;
+		std::cout << std::setprecision(14) << state.getParams().currentTime << "\t" << state.getState()[0] << std::endl;
 	}
 
 	/*
