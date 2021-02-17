@@ -69,8 +69,8 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-10;
-	params.lowerError = 1e-11;
+	params.upperError = 1e-13;
+	params.lowerError = 1e-15;
 	params.redutionFactor = 2.;
 	params.dt = .1;
 	params.minDt = .1;
@@ -81,10 +81,10 @@ int main()
 	params.useRK4 = true;
 	params.useRK2 = true;
 	params.isFast = false;
-	params.smallestAllowableDt = 1e-5;
+	params.smallestAllowableDt = 1e-6;
 
 	auto begin = 0.0;
-	auto end = 10.0;
+	auto end = 1.0;
 	auto dt = .01;
 
 	OdeSolver solver(params);
@@ -92,7 +92,7 @@ int main()
 
 	solver.refreshParams(params);
 		
-	solver.run(testProblem, ic, 0.0, 10);
+	solver.run(testProblem, ic, begin, end);
 
 	const auto grid = [&]()
 	{
@@ -104,6 +104,7 @@ int main()
 		{
 			timeGrid.push_back(currentTime);
 		}
+		timeGrid.push_back(end);
 
 		return timeGrid;
 	};

@@ -353,7 +353,9 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 				const OdeSolverParams& currentParams = params.find(methodItr->first)->second;
 
 				//Print our the current percentage done to terminal
-				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done; Remaining Time: " << ((((endTime - beginTime) / (currentParams.dt)) * currentParams.currentRunTime) -  currentParams.totalTime) << "; TotalError: " << currentParams.totalError <<  "}" << "\t";
+				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done; Remaining Time: "
+					<< std::max((std::floor((endTime - beginTime) / (currentParams.dt)) * currentParams.currentRunTime) - currentParams.totalTime, 0.0) << "; TotalError: " 
+					<< currentParams.totalError << "; Step Size: " << currentParams.dt << "; NumLevels: " << currentParams.currentTableSize << "}" << "\t";
 
 				//Update if we should continue sampling
 				counter += static_cast<short int>(currentParams.lastRun);
