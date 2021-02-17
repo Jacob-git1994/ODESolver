@@ -113,7 +113,7 @@ const tableMap& MethodWrapperBase::getTableMap() const
 void MethodWrapperBase::buildTables()
 {
 	//Go through what methods we are using and add a table class to each one
-	for (methodMap::iterator methodIter = methods.begin(); methodIter != methods.end(); ++methodIter)
+	for (methodMap::const_iterator methodIter = methods.cbegin(); methodIter != methods.cend(); ++methodIter)
 	{
 		tables.emplace(methodIter->first, std::move(Richardson()));
 	}
