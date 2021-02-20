@@ -346,16 +346,25 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 			//Counter to ensure we are all finished
 			short int counter = 0;
 
+			//Lock our thread if we are going to look at data
+			mutex lock;
+
+			//Lock
+			lock.lock();
+
 			//Get the status of the method
 			for (map<unsigned int, unique_ptr<SolverIF>>::const_iterator methodItr = allowedMethods.cbegin(); methodItr != allowedMethods.cend(); ++methodItr)
 			{
 				//Get the params for this method to check its current time
 				const OdeSolverParams& currentParams = params.find(methodItr->first)->second;
 
+				//Compute calculations to print to terminal
+				const double percentDone = 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime));
+				const double remainingTime = (currentParams.totalTime / (.01 * percentDone)) * (endTime - currentParams.currentTime);
+
 				//Print our the current percentage done to terminal
-				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << "CurrentTime: " << currentParams.currentTime << "; " << 100 * std::fabs((currentParams.currentTime - beginTime) / (endTime - beginTime)) << "% Done; Remaining Time: "
-					<< std::max((std::floor((endTime - beginTime) / (currentParams.dt)) * currentParams.currentRunTime) - currentParams.totalTime, 0.0) << "; TotalError: " 
-					<< currentParams.totalError << "; Step Size: " << currentParams.dt << "; NumLevels: " << currentParams.currentTableSize << "}" << std::endl;
+				std::cout << std::setprecision(4) << std::setw(2) << "{" << methodItr->first << ":\t" << "CurrentTime: " << currentParams.currentTime << "; " << percentDone << "% Done; Remaining Time: "
+					<< std::max(remainingTime, 0.0) << "; TotalError: "<< currentParams.totalError << "; Step Size: " << currentParams.dt << "; NumLevels: " << currentParams.currentTableSize << "}" << std::endl;
 
 				//Update if we should continue sampling
 				counter += static_cast<short int>(currentParams.lastRun);
@@ -367,6 +376,9 @@ void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const doubl
 				//Break loop
 				allowedCheckup = false;
 			}
+
+			//Unlock
+			lock.unlock();
 
 			//Delay our sampling time
 			std::this_thread::sleep_for(std::chrono::seconds(2));
