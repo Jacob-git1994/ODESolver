@@ -64,7 +64,7 @@ const valarray<double>& LinAlgHelperBase::solve(const double& currentTime, const
 {
 	//Generate our first pair of guesses
 	guessLeft = currentState;
-	guessRight = currentState + dt * problemIn->operator()(guessRight, guessLeft, currentTime);
+	guessRight = currentState + methodDt * problemIn->operator()(guessRight, guessLeft, currentTime);
 
 	//Generate our estimated error
 	double error = 99999;
