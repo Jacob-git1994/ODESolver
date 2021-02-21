@@ -145,6 +145,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Euler.cpp" />
+    <ClCompile Include="FirstOrderScheme.cpp" />
+    <ClCompile Include="LinAlgHelperBase.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MethodWrapperBase.cpp" />
     <ClCompile Include="OdeSolver.cpp" />
@@ -154,6 +156,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Euler.h" />
+    <ClInclude Include="FirstOrderScheme.h" />
+    <ClInclude Include="LinAlgHelperBase.h" />
     <ClInclude Include="MethodWrapperBase.h" />
     <ClInclude Include="OdeFunIF.h" />
     <ClInclude Include="OdeSolver.h" />

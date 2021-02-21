@@ -21,6 +21,9 @@
     <Filter Include="OdeSolver">
       <UniqueIdentifier>{266db6dd-8f6c-42c6-be32-0ccf1afd8288}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Methods\LinAlg">
+      <UniqueIdentifier>{c4367c5b-ff96-4a9e-aa74-ab0f86c376a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -43,6 +46,12 @@
     </ClCompile>
     <ClCompile Include="RK2.cpp">
       <Filter>Methods</Filter>
+    </ClCompile>
+    <ClCompile Include="LinAlgHelperBase.cpp">
+      <Filter>Methods\LinAlg</Filter>
+    </ClCompile>
+    <ClCompile Include="FirstOrderScheme.cpp">
+      <Filter>Methods\LinAlg</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +84,12 @@
     </ClInclude>
     <ClInclude Include="RK2.h">
       <Filter>Methods</Filter>
+    </ClInclude>
+    <ClInclude Include="LinAlgHelperBase.h">
+      <Filter>Methods\LinAlg</Filter>
+    </ClInclude>
+    <ClInclude Include="FirstOrderScheme.h">
+      <Filter>Methods\LinAlg</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

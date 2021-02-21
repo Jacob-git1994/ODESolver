@@ -67,9 +67,19 @@ public:
 	//Implict Solver Parameters
 	double implictDt;
 	double implictError;
+	unsigned int maxIter;
 
 	//Construtors
-	inline OdeSolverParams(const array<bool, 5>&, const array<double, 2>&, const array<double, 2>&, const array<size_t, 2>&, const array<size_t, 3>&, const double&, const double&, const array<double, 2>&);
+	inline OdeSolverParams(
+		const array<bool, 5>&, 
+		const array<double, 2>&, 
+		const array<double, 2>&, 
+		const array<size_t, 2>&, 
+		const array<size_t, 3>&, 
+		const double&, 
+		const double&, 
+		const array<double, 2>&, 
+		const unsigned int&);
 
 	//Copy Constructor
 	inline OdeSolverParams(const OdeSolverParams&) = default;
@@ -89,7 +99,8 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	const array<size_t, 3>& problemSpecifics = { false,false,false },
 	const double& reductionFactorIn = 2.,
 	const double& smallestAllowableDtIn = 1e-5,
-	const array<double, 2>& implictParams = { .1, .0001 }) :
+	const array<double, 2>& implictParams = { .1, .0001 },
+	const unsigned int& maxIterIn = 10) :
 	useEuler(allowedMethods[0]),
 	useRK2(allowedMethods[1]),
 	useRK4(allowedMethods[2]),
@@ -119,6 +130,7 @@ OdeSolverParams::OdeSolverParams(const array<bool, 5>& allowedMethods = { true,f
 	upgradeFactor(-1.),
 	implictDt(implictParams[0]),
 	implictError(implictParams[1]),
+	maxIter(maxIterIn),
 	totalTime(0.0)
 {
 	//If the inputs are invalid we do no want to continue
@@ -146,7 +158,7 @@ bool OdeSolverParams::checkUserInputs() const
 	goodArgs &= (redutionFactor > 1);
 
 	//Make sure the implict parameters are valid
-	goodArgs &= isfinite(implictDt) && isfinite(implictError) && implictDt > 0.0 && implictError > 0.0;
+	goodArgs &= isfinite(implictDt) && isfinite(implictError) && implictDt > 0.0 && implictError > 0.0 && maxIter > 0;
 
 	//Return if the arguments are valid
 	return goodArgs;
@@ -183,6 +195,7 @@ const OdeSolverParams& OdeSolverParams::operator=(const OdeSolverParams& params)
 	smallestAllowableDt = params.smallestAllowableDt;
 	upgradeFactor = params.upgradeFactor;
 	totalTime = params.totalTime;
+	maxIter = params.maxIter;
 
 	//Return this
 	return *this;
