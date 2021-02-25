@@ -45,7 +45,7 @@ std::valarray<double>& Test::operator()(std::valarray<double>& state,
 
 	return state;
 	*/
-	state[0] = currentState[0];//currentState[0]*std::cos(currentTime)*currentTime;
+	state[0] = -currentState[0];//currentState[0]*std::cos(currentTime)*currentTime;
 	return state;
 }
 
@@ -69,14 +69,14 @@ int main()
 	*/
 	OdeSolverParams params;
 
-	params.upperError = 1e-9;
+	params.upperError = 1e-11;
 	params.lowerError = 1e-14;
 	params.redutionFactor = 2.;
 	params.dt = .001;
 	params.minDt = .1;
 	params.maxDt = 2.;
 	params.minTableSize = 4;
-	params.maxTableSize = 8;
+	params.maxTableSize = 12;
 	params.useEuler = true;
 	params.useRK4 = true;
 	params.useRK2 = true;
