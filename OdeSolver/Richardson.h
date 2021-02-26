@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <exception>
 #include <iostream>
@@ -20,6 +21,7 @@ using std::pow;
 using std::fabs;
 using std::log;
 using std::invalid_argument;
+using std::for_each;
 
 class Richardson
 {

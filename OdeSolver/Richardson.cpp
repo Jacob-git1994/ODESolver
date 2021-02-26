@@ -72,24 +72,12 @@ double Richardson::normedError() const
 	vec error = result[result.size() - 1][result.size() - 1] - result[result.size() - 2][result.size() - 2];
 	//vec error = result[result.size() - 1][result.size() - 1] - result[0][0];
 
-	//temp place to store the max error
-	double normVal = 0.;
-
-	//Find the max value in our error vector (maximum error)
-	for (size_t i = 0; i < error.size(); ++i)
-	{
-		//Get the abs of the error
-		const double absError = fabs(error[i]);
-
-		//Check if this is the largest error
-		if (absError > normVal)
+	for_each(std::begin(error), std::end(error), [](double& elIn)
 		{
-			normVal = absError;
-		}
-	}
+			elIn = std::abs(elIn);
+		});
 
-	//Return the greatest error found
-	return normVal;
+	return error.max();
 }
 
 const double Richardson::error(rvec bestResult, double& c)
