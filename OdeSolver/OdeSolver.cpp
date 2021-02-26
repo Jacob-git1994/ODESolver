@@ -291,6 +291,12 @@ const bool OdeSolver::updateDt(OdeSolverParams& currentParams, const bool firstP
 /// <param name="nodes"></param>
 void OdeSolver::run(const OdeFunIF* problem, crvec initalConditions, const double beginTime, const double endTime)
 {
+	//Prepare to reinitalize everything
+	const OdeSolverParams currentParamsForAllMethods = generalParams;
+
+	//Reset all before starting
+	refreshParams(currentParamsForAllMethods);
+
 	//Initalize all the methods
 	methods.updateAll(initalConditions, generalParams.minTableSize, generalParams.redutionFactor, generalParams.dt);
 
